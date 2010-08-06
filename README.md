@@ -10,7 +10,7 @@ Go still does not have a balanced binary search tree (BBST) data structure.
 These data structures are quite useful in a variety of cases. A BBST maintains
 elements in sorted order under dynamic updates (inserts and deletes) and can
 support varios order-specific queries. Furthermore, in practice one often
-implements other common data structures like Priority Queues, using a BBST's.
+implements other common data structures like Priority Queues, using BBST's.
 
 2-3 trees (a type of BBST's), as well as the runtime-similar 2-3-4 trees, are
 the de facto standard BBST algoritms found in implementations of Python, Java,
