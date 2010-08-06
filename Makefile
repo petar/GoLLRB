@@ -7,10 +7,10 @@ include $(GOROOT)/src/Make.$(GOARCH)
 all:	install
 
 install:
-	cd src && make install
+	cd llrb && make install
 
 clean:
-	cd src && make clean
+	cd llrb && make clean
 
 nuke:
-	cd src && make nuke
+	cd llrb && make nuke
