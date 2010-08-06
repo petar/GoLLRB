@@ -10,7 +10,7 @@ install:
 	cd src && make install
 
 clean:
-	cd proto && make clean
+	cd src && make clean
 
 nuke:
-	cd proto && make nuke
+	cd src && make nuke
