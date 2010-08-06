@@ -1,3 +1,7 @@
+// Copyright 2010 Petar Maymounkov. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package llrb
 
 import (
@@ -14,21 +18,27 @@ func (item IntItem) LessThan(other interface{}) bool {
 
 func TestCases(t *testing.T) {
 	tree := &Tree{}
-	tree.Insert(IntItem(1))
-	tree.Insert(IntItem(1))
-	//fmt.Printf("L=%d\n", tree.Len())
+	tree.InsertOrReplace(IntItem(1))
+	tree.InsertOrReplace(IntItem(1))
+	if tree.Len() != 1 {
+		t.Errorf("expecting len 1")
+	}
 	if !tree.Has(IntItem(1)) {
 		t.Errorf("expecting to find key=1")
 	}
 
 	tree.Delete(IntItem(1))
-	//fmt.Printf("L=%d\n", tree.Len())
+	if tree.Len() != 0 {
+		t.Errorf("expecting len 0")
+	}
 	if tree.Has(IntItem(1)) {
 		t.Errorf("not expecting to find key=1")
 	}
 
 	tree.Delete(IntItem(1))
-	//fmt.Printf("L=%d\n", tree.Len())
+	if tree.Len() != 0 {
+		t.Errorf("expecting len 0")
+	}
 	if tree.Has(IntItem(1)) {
 		t.Errorf("not expecting to find key=1")
 	}
@@ -38,7 +48,7 @@ func TestReverseInsertOrder(t *testing.T) {
 	tree := &Tree{}
 	n := 100
 	for i := 0; i < n; i++ {
-		tree.Insert(IntItem(n-i))
+		tree.InsertOrReplace(IntItem(n-i))
 	}
 	c := tree.Iter()
 	for j, item := 1, <-c; item != nil; j, item = j+1, <-c {
@@ -53,7 +63,7 @@ func TestRandomInsertOrder(t *testing.T) {
 	n := 1000
 	perm := rand.Perm(n)
 	for i := 0; i < n; i++ {
-		tree.Insert(IntItem(perm[i]))
+		tree.InsertOrReplace(IntItem(perm[i]))
 	}
 	c := tree.Iter()
 	for j, item := 0, <-c; item != nil; j, item = j+1, <-c {
@@ -63,12 +73,28 @@ func TestRandomInsertOrder(t *testing.T) {
 	}
 }
 
+func TestRandomReplace(t *testing.T) {
+	tree := &Tree{}
+	n := 100
+	perm := rand.Perm(n)
+	for i := 0; i < n; i++ {
+		tree.InsertOrReplace(IntItem(perm[i]))
+	}
+	perm = rand.Perm(n)
+	for i := 0; i < n; i++ {
+		if replaced := tree.InsertOrReplace(IntItem(perm[i])); 
+			replaced == nil || int(replaced.(IntItem)) != perm[i] {
+			t.Errorf("error replacing")
+		}
+	}
+}
+
 func TestRandomInsertSequentialDelete(t *testing.T) {
 	tree := &Tree{}
 	n := 1000
 	perm := rand.Perm(n)
 	for i := 0; i < n; i++ {
-		tree.Insert(IntItem(perm[i]))
+		tree.InsertOrReplace(IntItem(perm[i]))
 	}
 	for i := 0; i < n; i++ {
 		tree.Delete(IntItem(i))
@@ -80,15 +106,25 @@ func TestRandomInsertDeleteNonExistent(t *testing.T) {
 	n := 100
 	perm := rand.Perm(n)
 	for i := 0; i < n; i++ {
-		tree.Insert(IntItem(perm[i]))
+		tree.InsertOrReplace(IntItem(perm[i]))
 	}
-	tree.Delete(IntItem(200))
-	tree.Delete(IntItem(-2))
+	if tree.Delete(IntItem(200)) != nil {
+		t.Errorf("deleted non-existent item")
+	}
+	if tree.Delete(IntItem(-2)) != nil {
+		t.Errorf("deleted non-existent item")
+	}
 	for i := 0; i < n; i++ {
-		tree.Delete(IntItem(i))
+		if u := tree.Delete(IntItem(i)); u == nil || int(u.(IntItem)) != i {
+			t.Errorf("delete failed")
+		}
 	}
-	tree.Delete(IntItem(200))
-	tree.Delete(IntItem(-2))
+	if tree.Delete(IntItem(200)) != nil {
+		t.Errorf("deleted non-existent item")
+	}
+	if tree.Delete(IntItem(-2)) != nil {
+		t.Errorf("deleted non-existent item")
+	}
 }
 
 func TestRandomInsertPartialDeleteOrder(t *testing.T) {
@@ -96,7 +132,7 @@ func TestRandomInsertPartialDeleteOrder(t *testing.T) {
 	n := 100
 	perm := rand.Perm(n)
 	for i := 0; i < n; i++ {
-		tree.Insert(IntItem(perm[i]))
+		tree.InsertOrReplace(IntItem(perm[i]))
 	}
 	for i := 1; i < n-1; i++ {
 		tree.Delete(IntItem(i))
@@ -115,7 +151,7 @@ func TestRandomInsertStats(t *testing.T) {
 	n := 100000
 	perm := rand.Perm(n)
 	for i := 0; i < n; i++ {
-		tree.Insert(IntItem(perm[i]))
+		tree.InsertOrReplace(IntItem(perm[i]))
 	}
 	avg, _ := tree.HeightStats()
 	expAvg := math.Log2(float64(n)) - 1.5
@@ -127,7 +163,7 @@ func TestRandomInsertStats(t *testing.T) {
 func BenchmarkInsert(b *testing.B) {
 	tree := &Tree{}
 	for i := 0; i < b.N; i++ {
-		tree.Insert(IntItem(b.N-i))
+		tree.InsertOrReplace(IntItem(b.N-i))
 	}
 }
 
@@ -135,7 +171,7 @@ func BenchmarkDelete(b *testing.B) {
 	b.StopTimer()
 	tree := &Tree{}
 	for i := 0; i < b.N; i++ {
-		tree.Insert(IntItem(b.N-i))
+		tree.InsertOrReplace(IntItem(b.N-i))
 	}
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -147,7 +183,7 @@ func BenchmarkDeleteMin(b *testing.B) {
 	b.StopTimer()
 	tree := &Tree{}
 	for i := 0; i < b.N; i++ {
-		tree.Insert(IntItem(b.N-i))
+		tree.InsertOrReplace(IntItem(b.N-i))
 	}
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {

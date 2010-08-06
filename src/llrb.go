@@ -6,11 +6,6 @@
 
 package llrb
 
-// TODO:
-//      - Implement Len() + TEST
-//	- Delete, DeleteMin and DeleteMax return deleted item + TEST
-//      - Can flip() ever be called with |h.left == nil| or |h.right == nil|?
-
 // |Tree| is a Left-Leaning Red-Black (LLRB) implementation of 2-3 trees, based on:
 //
 //   http://www.cs.princeton.edu/~rs/talks/LLRB/08Penn.pdf
@@ -25,6 +20,7 @@ package llrb
 // |Tree| has an associative interface, i.e. duplicate key are not allowed.
 // The zero-value of a |Tree| represents a ready-for-use tree.
 type Tree struct {
+	count int
 	root *node
 }
 
@@ -41,6 +37,8 @@ type Item interface {
 func (t *Tree) Init() {
 	t.root = nil
 }
+
+func (t *Tree) Len() int { return t.count }
 
 // |Has| returns true if the tree contains an element
 // whose |LessThan| order equals that of |key|.
@@ -98,25 +96,35 @@ func max(h *node) Item {
 }
 
 // |Insert| inserts a new element in the tree, or replaces
-// an existing one of identical |LessThan| order.
-func (t *Tree) Insert(item Item) {
-	t.root = insert(t.root, item)
+// an existing one of identical |LessThan| order. 
+// If a replacement occurred, the replaced item is returned.
+func (t *Tree) InsertOrReplace(item Item) Item {
+	if item == nil {
+		panic("inserting nil item")
+	}
+	var replaced Item
+	t.root, replaced = insert(t.root, item)
 	t.root.black = true
+	if replaced == nil {
+		t.count++
+	}
+	return replaced
 }
 
-func insert(h *node, item Item) *node {
+func insert(h *node, item Item) (*node, Item) {
 	if h == nil {
-		return newNode(item)
+		return newNode(item), nil
 	}
 
 	// PLACEHOLDER: 2-3-4 tree (see comment below)
 
+	var replaced Item
 	if item.LessThan(h.item) {
-		h.left = insert(h.left, item)
+		h.left, replaced = insert(h.left, item)
 	} else if h.item.LessThan(item) {
-		h.right = insert(h.right, item)
+		h.right, replaced = insert(h.right, item)
 	} else {
-		h.item = item
+		replaced, h.item = h.item, item
 	}
 
 	if isRed(h.right) && !isRed(h.left) {
@@ -135,103 +143,128 @@ func insert(h *node, item Item) *node {
 		flip(h)
 	}
 
-	return h
+	return h, replaced
 }
 
-// |DeleteMin| deletes the minimum element in the tree
-func (t *Tree) DeleteMin() {
-	t.root = deleteMin(t.root)
+// |DeleteMin| deletes the minimum element in the tree and returns the
+// deleted item or nil otherwise.
+func (t *Tree) DeleteMin() Item {
+	var deleted Item
+	t.root, deleted = deleteMin(t.root)
 	if t.root != nil {
 		t.root.black = true
 	}
+	if deleted != nil {
+		t.count--
+	}
+	return deleted
 }
 
 // deleteMin code for LLRB 2-3 trees
-func deleteMin(h *node) *node {
+func deleteMin(h *node) (*node, Item) {
 	if h == nil {
-		return nil
+		return nil, nil
 	}
 	if h.left == nil {
-		return nil
+		return nil, h.item
 	}
 
 	if !isRed(h.left) && !isRed(h.left.left) {
 		h = moveRedLeft(h)
 	}
 
-	h.left = deleteMin(h.left)
+	var deleted Item
+	h.left, deleted = deleteMin(h.left)
 
-	return fixUp(h)
+	return fixUp(h), deleted
 }
 
-// |DeleteMax| deletes the maximum element in the tree
-func (t *Tree) DeleteMax() {
-	t.root = deleteMax(t.root)
+// |DeleteMax| deletes the maximum element in the tree and returns
+// the deleted item or nil otherwise
+func (t *Tree) DeleteMax() Item {
+	var deleted Item
+	t.root, deleted = deleteMax(t.root)
 	if t.root != nil {
 		t.root.black = true
 	}
+	if deleted != nil {
+		t.count--
+	}
+	return deleted
 }
 
-func deleteMax(h *node) *node {
+func deleteMax(h *node) (*node, Item) {
 	if h == nil {
-		return nil
+		return nil, nil
 	}
 	if isRed(h.left) {
 		h = rotateRight(h)
 	}
 	if h.right == nil {
-		return nil
+		return nil, h.item
 	}
 	if !isRed(h.right) && !isRed(h.right.left) {
 		h = moveRedRight(h)
 	}
-	h.right = deleteMax(h.right)
+	var deleted Item
+	h.right, deleted = deleteMax(h.right)
 
-	return fixUp(h)
+	return fixUp(h), deleted
 }
 
-// |Delete| deletes an item from the tree, whose key equals |key|
-func (t *Tree) Delete(key Item) {
-	t.root = delete(t.root, key)
+// |Delete| deletes an item from the tree whose key equals |key|.
+// The deleted item is return, otherwise nil is returned.
+func (t *Tree) Delete(key Item) Item {
+	var deleted Item
+	t.root, deleted = delete(t.root, key)
 	if t.root != nil {
 		t.root.black = true
 	}
+	if deleted != nil {
+		t.count--
+	}
+	return deleted
 }
 
-func delete(h *node, item Item) *node {
+func delete(h *node, item Item) (*node, Item) {
+	var deleted Item
 	if h == nil {
-		return nil
+		return nil, nil
 	}
 	if item.LessThan(h.item) {
 		if h.left == nil { // item not present. Nothing to delete
-			return h
+			return h, nil
 		}
 		if !isRed(h.left) && !isRed(h.left.left) {
 			h = moveRedLeft(h)
 		}
-		h.left = delete(h.left, item)
+		h.left, deleted = delete(h.left, item)
 	} else {
 		if isRed(h.left) {
 			h = rotateRight(h)
 		}
 		// If |item| equals |h.item| and no right children at |h|
 		if !h.item.LessThan(item) && h.right == nil {
-			return nil
+			return nil, h.item
 		}
-		// PETAR: Added |h.right != nil|
+		// PETAR: Added |h.right != nil| below
 		if h.right != nil && !isRed(h.right) && !isRed(h.right.left) {
 			h = moveRedRight(h)
 		}
 		// If |item| equals |h.item|, and (from above) |h.right != nil|
 		if !h.item.LessThan(item) {
-			h.item = min(h.right)
-			h.right = deleteMin(h.right)
+			var subDeleted Item
+			h.right, subDeleted = deleteMin(h.right)
+			if subDeleted == nil {
+				panic("logic")
+			}
+			deleted, h.item = h.item, subDeleted
 		} else { // Else, |item| is bigger than |h.item|
-			h.right = delete(h.right, item)
+			h.right, deleted = delete(h.right, item)
 		}
 	}
 
-	return fixUp(h)
+	return fixUp(h), deleted
 }
 
 // |Iter| returns a chan that iterates through all elements in the
@@ -311,6 +344,9 @@ func rotateRight(h *node) *node {
 	h.black = false
 	return x
 }
+
+// XXX:
+//      - Can flip() ever be called with |h.left == nil| or |h.right == nil|?
 
 // Left and right children must be present
 func flip(h *node) {
