@@ -12,7 +12,7 @@ package llrb
 //   http://www.cs.princeton.edu/~rs/talks/LLRB/LLRB.pdf
 //   http://www.cs.princeton.edu/~rs/talks/LLRB/Java/RedBlackBST.java
 //
-//  2-3 trees (and the run-time equivalent 2-3-4 trees) are the de facto standard BST 
+//  2-3 trees (and the run-time equivalent 2-3-4 trees) are the de facto standard BST
 //  algoritms found in implementations of Python, Java, and other libraries. The LLRB
 //  implementation of 2-3 trees is a recent improvement on the traditional implementation,
 //  observed and documented by Robert Sedgewick.
@@ -21,10 +21,10 @@ package llrb
 // The zero-value of a |Tree| represents a ready-for-use tree.
 type Tree struct {
 	count int
-	root *node
+	root  *node
 }
 
-// An |Item| represents an object that can be inserted in |Tree|. It acts as a 
+// An |Item| represents an object that can be inserted in |Tree|. It acts as a
 // key via the method |LessThan|, which induces a full ordering on |Item|s. It is
 // also a value, as the user can attach any data to it.
 type Item interface {
@@ -96,7 +96,7 @@ func max(h *node) Item {
 }
 
 // |Insert| inserts a new element in the tree, or replaces
-// an existing one of identical |LessThan| order. 
+// an existing one of identical |LessThan| order.
 // If a replacement occurred, the replaced item is returned.
 func (t *Tree) InsertOrReplace(item Item) Item {
 	if item == nil {
@@ -306,13 +306,13 @@ func iteratePostOrder(h *node, c chan<- Item) {
 }
 
 type node struct {
-	item       Item 
-	left,right *node    // Pointers to left and right child nodes
-	black      bool     // If set, the color of the link (incoming from the parent) is black
-	                    // In the LLRB, new nodes are always red, hence the zero-value for node
+	item        Item
+	left, right *node // Pointers to left and right child nodes
+	black       bool  // If set, the color of the link (incoming from the parent) is black
+	// In the LLRB, new nodes are always red, hence the zero-value for node
 }
 
-func newNode(item Item) *node { return &node{ item: item } }
+func newNode(item Item) *node { return &node{item: item} }
 
 func isRed(h *node) bool {
 	if h == nil {

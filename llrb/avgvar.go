@@ -9,7 +9,7 @@ import "math"
 // avgVar maintains the average and variance of a stream of numbers
 // in a space-efficient manner.
 type avgVar struct {
-	count int64
+	count      int64
 	sum, sumsq float64
 }
 
@@ -22,7 +22,7 @@ func (av *avgVar) Init() {
 func (av *avgVar) Add(sample float64) {
 	av.count++
 	av.sum += sample
-	av.sumsq += sample*sample
+	av.sumsq += sample * sample
 }
 
 func (av *avgVar) GetCount() int64 { return av.count }

@@ -15,11 +15,11 @@ func getHeight(h *node, item Item) (Item, int) {
 	}
 	if item.LessThan(h.item) {
 		result, depth := getHeight(h.left, item)
-		return result, depth+1
+		return result, depth + 1
 	}
 	if h.item.LessThan(item) {
 		result, depth := getHeight(h.right, item)
-		return result, depth+1
+		return result, depth + 1
 	}
 	return h.item, 0
 }

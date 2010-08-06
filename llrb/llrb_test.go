@@ -48,7 +48,7 @@ func TestReverseInsertOrder(t *testing.T) {
 	tree := &Tree{}
 	n := 100
 	for i := 0; i < n; i++ {
-		tree.InsertOrReplace(IntItem(n-i))
+		tree.InsertOrReplace(IntItem(n - i))
 	}
 	c := tree.Iter()
 	for j, item := 1, <-c; item != nil; j, item = j+1, <-c {
@@ -82,8 +82,7 @@ func TestRandomReplace(t *testing.T) {
 	}
 	perm = rand.Perm(n)
 	for i := 0; i < n; i++ {
-		if replaced := tree.InsertOrReplace(IntItem(perm[i])); 
-			replaced == nil || int(replaced.(IntItem)) != perm[i] {
+		if replaced := tree.InsertOrReplace(IntItem(perm[i])); replaced == nil || int(replaced.(IntItem)) != perm[i] {
 			t.Errorf("error replacing")
 		}
 	}
@@ -155,7 +154,7 @@ func TestRandomInsertStats(t *testing.T) {
 	}
 	avg, _ := tree.HeightStats()
 	expAvg := math.Log2(float64(n)) - 1.5
-	if math.Fabs(avg - expAvg) >= 2.0 {
+	if math.Fabs(avg-expAvg) >= 2.0 {
 		t.Errorf("too much deviation from expected average height")
 	}
 }
@@ -163,7 +162,7 @@ func TestRandomInsertStats(t *testing.T) {
 func BenchmarkInsert(b *testing.B) {
 	tree := &Tree{}
 	for i := 0; i < b.N; i++ {
-		tree.InsertOrReplace(IntItem(b.N-i))
+		tree.InsertOrReplace(IntItem(b.N - i))
 	}
 }
 
@@ -171,7 +170,7 @@ func BenchmarkDelete(b *testing.B) {
 	b.StopTimer()
 	tree := &Tree{}
 	for i := 0; i < b.N; i++ {
-		tree.InsertOrReplace(IntItem(b.N-i))
+		tree.InsertOrReplace(IntItem(b.N - i))
 	}
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -183,7 +182,7 @@ func BenchmarkDeleteMin(b *testing.B) {
 	b.StopTimer()
 	tree := &Tree{}
 	for i := 0; i < b.N; i++ {
-		tree.InsertOrReplace(IntItem(b.N-i))
+		tree.InsertOrReplace(IntItem(b.N - i))
 	}
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
