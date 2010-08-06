@@ -5,7 +5,7 @@ search trees in Google Go.
 
 ## Overview
 
-As of the writing of this file and to the best of the author's knowledge, Google
+As of this writing and to the best of the author's knowledge, Google
 Go still does not have a balanced binary search tree (BBST) data structure.
 These data structures are quite useful in a variety of cases. A BBST maintains
 elements in sorted order under dynamic updates (inserts and deletes) and can
