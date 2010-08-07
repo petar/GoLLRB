@@ -9,14 +9,14 @@ As of this writing and to the best of the author's knowledge, Google
 Go still does not have a balanced binary search tree (BBST) data structure.
 These data structures are quite useful in a variety of cases. A BBST maintains
 elements in sorted order under dynamic updates (inserts and deletes) and can
-support varios order-specific queries. Furthermore, in practice one often
+support various order-specific queries. Furthermore, in practice one often
 implements other common data structures like Priority Queues, using BBST's.
 
 2-3 trees (a type of BBST's), as well as the runtime-similar 2-3-4 trees, are
 the de facto standard BBST algoritms found in implementations of Python, Java,
 and other libraries. The LLRB method of implementing 2-3 trees is a recent
 improvement over the traditional implementation. The LLRB approach was
-discovered relatively recently (in 2008) by Roger Sedgewick of Princeton
+discovered relatively recently (in 2008) by Robert Sedgewick of Princeton
 University.
 
 GoLLRB is a Go implementation of LLRB 2-3 trees.
