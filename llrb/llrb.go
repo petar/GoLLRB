@@ -36,6 +36,7 @@ type Item interface {
 // Init resets (empties) the tree
 func (t *Tree) Init() {
 	t.root = nil
+	t.count = 0
 }
 
 func (t *Tree) Len() int { return t.count }
