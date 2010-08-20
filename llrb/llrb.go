@@ -6,7 +6,7 @@
 
 package llrb
 
-// |Tree| is a Left-Leaning Red-Black (LLRB) implementation of 2-3 trees, based on:
+// Tree{} is a Left-Leaning Red-Black (LLRB) implementation of 2-3 trees, based on:
 //
 //   http://www.cs.princeton.edu/~rs/talks/LLRB/08Penn.pdf
 //   http://www.cs.princeton.edu/~rs/talks/LLRB/LLRB.pdf
@@ -17,23 +17,23 @@ package llrb
 //  implementation of 2-3 trees is a recent improvement on the traditional implementation,
 //  observed and documented by Robert Sedgewick.
 //
-// |Tree| has an associative interface, i.e. duplicate key are not allowed.
-// The zero-value of a |Tree| represents a ready-for-use tree.
+// Tree{} has an associative interface, i.e. duplicate key are not allowed.
+// The zero-value of a Tree{} represents a ready-for-use tree.
 type Tree struct {
 	count int
 	root  *node
 }
 
-// An |Item| represents an object that can be inserted in |Tree|. It acts as a
-// key via the method |LessThan|, which induces a full ordering on |Item|s. It is
+// An Item{} represents an object that can be inserted in Tree{}. It acts as a
+// key via the method LessThan(), which induces a full ordering on Item{}s. It is
 // also a value, as the user can attach any data to it.
 type Item interface {
 
-	// |LessThan| returns true, if and only if |this| is STRICTLY less than |other|
+	// LessThan() returns true, if and only if @this is STRICTLY less than @other
 	LessThan(other interface{}) bool
 }
 
-// Init resets (empties) the tree
+// Init() resets (empties) the tree
 func (t *Tree) Init() {
 	t.root = nil
 	t.count = 0
@@ -41,14 +41,14 @@ func (t *Tree) Init() {
 
 func (t *Tree) Len() int { return t.count }
 
-// |Has| returns true if the tree contains an element
-// whose |LessThan| order equals that of |key|.
+// Has() returns true if the tree contains an element
+// whose LessThan() order equals that of @key.
 func (t *Tree) Has(key Item) bool {
 	return t.Get(key) != nil
 }
 
-// |Get| retrieves an element from the tree whose |LessThan| order
-// equals that of |key|.
+// Get() retrieves an element from the tree whose LessThan() order
+// equals that of @key.
 func (t *Tree) Get(key Item) Item {
 	return get(t.root, key)
 }
@@ -66,7 +66,7 @@ func get(h *node, item Item) Item {
 	return h.item
 }
 
-// |Min| returns the minimum element in the tree.
+// Min() returns the minimum element in the tree.
 func (t *Tree) Min() Item {
 	return min(t.root)
 }
@@ -81,7 +81,7 @@ func min(h *node) Item {
 	return min(h.left)
 }
 
-// |Max| returns the maximum element in the tree.
+// Max() returns the maximum element in the tree.
 func (t *Tree) Max() Item {
 	return max(t.root)
 }
@@ -102,8 +102,8 @@ func (t *Tree) InsertOrReplaceBulk(items ...Item) {
 	}
 }
 
-// |InsertOrReplace| inserts a new element in the tree, or replaces
-// an existing one of identical |LessThan| order.
+// InsertOrReplace() inserts a new element in the tree, or replaces
+// an existing one of identical LessThan() order.
 // If a replacement occurred, the replaced item is returned.
 func (t *Tree) InsertOrReplace(item Item) Item {
 	if item == nil {
@@ -138,7 +138,7 @@ func insert(h *node, item Item) (*node, Item) {
 		h = rotateLeft(h)
 	}
 
-	// PETAR: added |h.left != nil|
+	// PETAR: added 'h.left != nil'
 	if h.left != nil && isRed(h.left) && isRed(h.left.left) {
 		h = rotateRight(h)
 	}
@@ -153,7 +153,7 @@ func insert(h *node, item Item) (*node, Item) {
 	return h, replaced
 }
 
-// |DeleteMin| deletes the minimum element in the tree and returns the
+// DeleteMin() deletes the minimum element in the tree and returns the
 // deleted item or nil otherwise.
 func (t *Tree) DeleteMin() Item {
 	var deleted Item
@@ -167,7 +167,7 @@ func (t *Tree) DeleteMin() Item {
 	return deleted
 }
 
-// deleteMin code for LLRB 2-3 trees
+// deleteMin() code for LLRB 2-3 trees
 func deleteMin(h *node) (*node, Item) {
 	if h == nil {
 		return nil, nil
@@ -186,7 +186,7 @@ func deleteMin(h *node) (*node, Item) {
 	return fixUp(h), deleted
 }
 
-// |DeleteMax| deletes the maximum element in the tree and returns
+// DeleteMax() deletes the maximum element in the tree and returns
 // the deleted item or nil otherwise
 func (t *Tree) DeleteMax() Item {
 	var deleted Item
@@ -219,7 +219,7 @@ func deleteMax(h *node) (*node, Item) {
 	return fixUp(h), deleted
 }
 
-// |Delete| deletes an item from the tree whose key equals |key|.
+// Delete() deletes an item from the tree whose key equals @key.
 // The deleted item is return, otherwise nil is returned.
 func (t *Tree) Delete(key Item) Item {
 	var deleted Item
@@ -250,15 +250,15 @@ func delete(h *node, item Item) (*node, Item) {
 		if isRed(h.left) {
 			h = rotateRight(h)
 		}
-		// If |item| equals |h.item| and no right children at |h|
+		// If @item equals @h.item and no right children at @h
 		if !h.item.LessThan(item) && h.right == nil {
 			return nil, h.item
 		}
-		// PETAR: Added |h.right != nil| below
+		// PETAR: Added 'h.right != nil' below
 		if h.right != nil && !isRed(h.right) && !isRed(h.right.left) {
 			h = moveRedRight(h)
 		}
-		// If |item| equals |h.item|, and (from above) |h.right != nil|
+		// If @item equals @h.item, and (from above) 'h.right != nil'
 		if !h.item.LessThan(item) {
 			var subDeleted Item
 			h.right, subDeleted = deleteMin(h.right)
@@ -266,7 +266,7 @@ func delete(h *node, item Item) (*node, Item) {
 				panic("logic")
 			}
 			deleted, h.item = h.item, subDeleted
-		} else { // Else, |item| is bigger than |h.item|
+		} else { // Else, @item is bigger than @h.item
 			h.right, deleted = delete(h.right, item)
 		}
 	}
@@ -383,14 +383,14 @@ func rotateRight(h *node) *node {
 // XXX:
 //      - Can flip() ever be called with |h.left == nil| or |h.right == nil|?
 
-// Left and right children must be present
+// REQUIRE: Left and right children must be present
 func flip(h *node) {
 	h.black = !h.black
 	h.left.black = !h.left.black
 	h.right.black = !h.right.black
 }
 
-// Left and right children must be present
+// REQUIRE: Left and right children must be present
 func moveRedLeft(h *node) *node {
 	flip(h)
 	if isRed(h.right.left) {
@@ -401,7 +401,7 @@ func moveRedLeft(h *node) *node {
 	return h
 }
 
-// Left and right children must be present
+// REQUIRE: Left and right children must be present
 func moveRedRight(h *node) *node {
 	flip(h)
 	if isRed(h.left.left) {
@@ -416,7 +416,7 @@ func fixUp(h *node) *node {
 		h = rotateLeft(h)
 	}
 
-	// PETAR: added |h.left != nil|
+	// PETAR: added 'h.left != nil'
 	if h.left != nil && isRed(h.left) && isRed(h.left.left) {
 		h = rotateRight(h)
 	}
