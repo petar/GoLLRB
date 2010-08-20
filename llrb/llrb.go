@@ -274,7 +274,7 @@ func delete(h *node, item Item) (*node, Item) {
 	return fixUp(h), deleted
 }
 
-// |Iter| returns a chan that iterates through all elements in the
+// Iter() returns a chan that iterates through all elements in the
 // tree in ascending order.
 func (t *Tree) Iter() <-chan Item {
 	c := make(chan Item)
@@ -285,6 +285,8 @@ func (t *Tree) Iter() <-chan Item {
 	return c
 }
 
+// IterRange() returns a chan that iterates through all elements E in the
+// tree with @lower <= E < @upper in ascending order.
 func (t *Tree) IterRange(lower, upper Item) <-chan Item {
 	c := make(chan Item)
 	go func() {
