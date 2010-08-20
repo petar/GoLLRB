@@ -16,6 +16,12 @@ func (item IntItem) LessThan(other interface{}) bool {
 	return int(item) < int(other.(IntItem))
 }
 
+type StringItem string
+
+func (item StringItem) LessThan(other interface{}) bool {
+	return string(item) < string(other.(StringItem))
+}
+
 func TestCases(t *testing.T) {
 	tree := &Tree{}
 	tree.InsertOrReplace(IntItem(1))
@@ -55,6 +61,31 @@ func TestReverseInsertOrder(t *testing.T) {
 		if int(item.(IntItem)) != j {
 			t.Fatalf("bad order")
 		}
+	}
+}
+
+func TestRange(t *testing.T) {
+	tree := &Tree{}
+	order := []StringItem{
+		StringItem("ab"), StringItem("aba"), StringItem("abc"),
+		StringItem("a"), StringItem("aa"), StringItem("aaa"),
+		StringItem("b"), StringItem("a-"), StringItem("a!"),
+	}
+	for _, i := range order {
+		tree.InsertOrReplace(i)
+	}
+	c := tree.IterRange(StringItem("ab"), StringItem("ac"))
+	k := 0
+	for item := <-c; item != nil; item = <-c {
+		if k > 3 {
+			t.Fatalf("returned more items than expected")
+		}
+		i1 := string(order[k])
+		i2 := string(item.(StringItem))
+		if i1 != i2 {
+			t.Errorf("expecting %s, got %s", i1, i2)
+		}
+		k++
 	}
 }
 

@@ -96,7 +96,13 @@ func max(h *node) Item {
 	return max(h.right)
 }
 
-// |Insert| inserts a new element in the tree, or replaces
+func (t *Tree) InsertOrReplaceBulk(items ...Item) {
+	for _, i := range items {
+		t.InsertOrReplace(i)
+	}
+}
+
+// |InsertOrReplace| inserts a new element in the tree, or replaces
 // an existing one of identical |LessThan| order.
 // If a replacement occurred, the replaced item is returned.
 func (t *Tree) InsertOrReplace(item Item) Item {
@@ -277,6 +283,32 @@ func (t *Tree) Iter() <-chan Item {
 		close(c)
 	}()
 	return c
+}
+
+func (t *Tree) IterRange(lower, upper Item) <-chan Item {
+	c := make(chan Item)
+	go func() {
+		iterateRange(t.root, c, lower, upper)
+		close(c)
+	}()
+	return c
+}
+
+func iterateRange(h *node, c chan<- Item, lower,upper Item) {
+	if h == nil {
+		return
+	}
+	lessThanLower := h.item.LessThan(lower)
+	lessThanUpper := h.item.LessThan(upper)
+	if !lessThanLower {
+		iterateRange(h.left, c, lower, upper)
+	}
+	if !lessThanLower && lessThanUpper {
+		c <- h.item
+	}
+	if lessThanUpper {
+		iterateRange(h.right, c, lower, upper)
+	}
 }
 
 func iterateInOrder(h *node, c chan<- Item) {
