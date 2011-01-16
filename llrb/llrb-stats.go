@@ -6,19 +6,19 @@ package llrb
 
 // GetHeight() returns an item in the tree with key @key, and it's height in the tree
 func (t *Tree) GetHeight(key Item) (result Item, depth int) {
-	return getHeight(t.root, key)
+	return t.getHeight(t.root, key)
 }
 
-func getHeight(h *node, item Item) (Item, int) {
+func (t *Tree) getHeight(h *node, item Item) (Item, int) {
 	if h == nil {
 		return nil, 0
 	}
-	if item.LessThan(h.item) {
-		result, depth := getHeight(h.left, item)
+	if t.less(item, h.item) {
+		result, depth := t.getHeight(h.left, item)
 		return result, depth + 1
 	}
-	if h.item.LessThan(item) {
-		result, depth := getHeight(h.right, item)
+	if t.less(h.item, item) {
+		result, depth := t.getHeight(h.right, item)
 		return result, depth + 1
 	}
 	return h.item, 0

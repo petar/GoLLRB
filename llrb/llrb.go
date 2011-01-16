@@ -17,24 +17,28 @@ package llrb
 //  implementation of 2-3 trees is a recent improvement on the traditional implementation,
 //  observed and documented by Robert Sedgewick.
 //
-// Tree{} has an associative interface, i.e. duplicate key are not allowed.
+// Tree{} has an associative interface, i.e. duplicate keys are not allowed.
 // The zero-value of a Tree{} represents a ready-for-use tree.
 type Tree struct {
+	less  LessFunc
 	count int
 	root  *node
 }
 
-// An Item{} represents an object that can be inserted in Tree{}. It acts as a
-// key via the method LessThan(), which induces a full ordering on Item{}s. It is
-// also a value, as the user can attach any data to it.
-type Item interface {
+type Item interface{}
 
-	// LessThan() returns true, if and only if @this is STRICTLY less than @other
-	LessThan(other interface{}) bool
+type LessFunc func(a, b interface{}) bool
+
+// New() allocates a new tree
+func New(lessfunc LessFunc) *Tree {
+	t := &Tree{}
+	t.Init(lessfunc)
+	return t
 }
 
 // Init() resets (empties) the tree
-func (t *Tree) Init() {
+func (t *Tree) Init(lessfunc LessFunc) {
+	t.less = lessfunc
 	t.root = nil
 	t.count = 0
 }
@@ -50,18 +54,18 @@ func (t *Tree) Has(key Item) bool {
 // Get() retrieves an element from the tree whose LessThan() order
 // equals that of @key.
 func (t *Tree) Get(key Item) Item {
-	return get(t.root, key)
+	return t.get(t.root, key)
 }
 
-func get(h *node, item Item) Item {
+func (t *Tree) get(h *node, item Item) Item {
 	if h == nil {
 		return nil
 	}
-	if item.LessThan(h.item) {
-		return get(h.left, item)
+	if t.less(item, h.item) {
+		return t.get(h.left, item)
 	}
-	if h.item.LessThan(item) {
-		return get(h.right, item)
+	if t.less(h.item, item) {
+		return t.get(h.right, item)
 	}
 	return h.item
 }
@@ -110,7 +114,7 @@ func (t *Tree) InsertOrReplace(item Item) Item {
 		panic("inserting nil item")
 	}
 	var replaced Item
-	t.root, replaced = insert(t.root, item)
+	t.root, replaced = t.insert(t.root, item)
 	t.root.black = true
 	if replaced == nil {
 		t.count++
@@ -118,7 +122,7 @@ func (t *Tree) InsertOrReplace(item Item) Item {
 	return replaced
 }
 
-func insert(h *node, item Item) (*node, Item) {
+func (t *Tree) insert(h *node, item Item) (*node, Item) {
 	if h == nil {
 		return newNode(item), nil
 	}
@@ -126,10 +130,10 @@ func insert(h *node, item Item) (*node, Item) {
 	// PLACEHOLDER: 2-3-4 tree (see comment below)
 
 	var replaced Item
-	if item.LessThan(h.item) {
-		h.left, replaced = insert(h.left, item)
-	} else if h.item.LessThan(item) {
-		h.right, replaced = insert(h.right, item)
+	if t.less(item, h.item) {
+		h.left, replaced = t.insert(h.left, item)
+	} else if t.less(h.item, item) {
+		h.right, replaced = t.insert(h.right, item)
 	} else {
 		replaced, h.item = h.item, item
 	}
@@ -223,7 +227,7 @@ func deleteMax(h *node) (*node, Item) {
 // The deleted item is return, otherwise nil is returned.
 func (t *Tree) Delete(key Item) Item {
 	var deleted Item
-	t.root, deleted = delete(t.root, key)
+	t.root, deleted = t.delete(t.root, key)
 	if t.root != nil {
 		t.root.black = true
 	}
@@ -233,25 +237,25 @@ func (t *Tree) Delete(key Item) Item {
 	return deleted
 }
 
-func delete(h *node, item Item) (*node, Item) {
+func (t *Tree) delete(h *node, item Item) (*node, Item) {
 	var deleted Item
 	if h == nil {
 		return nil, nil
 	}
-	if item.LessThan(h.item) {
+	if t.less(item, h.item) {
 		if h.left == nil { // item not present. Nothing to delete
 			return h, nil
 		}
 		if !isRed(h.left) && !isRed(h.left.left) {
 			h = moveRedLeft(h)
 		}
-		h.left, deleted = delete(h.left, item)
+		h.left, deleted = t.delete(h.left, item)
 	} else {
 		if isRed(h.left) {
 			h = rotateRight(h)
 		}
 		// If @item equals @h.item and no right children at @h
-		if !h.item.LessThan(item) && h.right == nil {
+		if !t.less(h.item, item) && h.right == nil {
 			return nil, h.item
 		}
 		// PETAR: Added 'h.right != nil' below
@@ -259,7 +263,7 @@ func delete(h *node, item Item) (*node, Item) {
 			h = moveRedRight(h)
 		}
 		// If @item equals @h.item, and (from above) 'h.right != nil'
-		if !h.item.LessThan(item) {
+		if !t.less(h.item, item) {
 			var subDeleted Item
 			h.right, subDeleted = deleteMin(h.right)
 			if subDeleted == nil {
@@ -267,7 +271,7 @@ func delete(h *node, item Item) (*node, Item) {
 			}
 			deleted, h.item = h.item, subDeleted
 		} else { // Else, @item is bigger than @h.item
-			h.right, deleted = delete(h.right, item)
+			h.right, deleted = t.delete(h.right, item)
 		}
 	}
 
@@ -290,26 +294,26 @@ func (t *Tree) Iter() <-chan Item {
 func (t *Tree) IterRange(lower, upper Item) <-chan Item {
 	c := make(chan Item)
 	go func() {
-		iterateRange(t.root, c, lower, upper)
+		t.iterateRange(t.root, c, lower, upper)
 		close(c)
 	}()
 	return c
 }
 
-func iterateRange(h *node, c chan<- Item, lower,upper Item) {
+func (t *Tree) iterateRange(h *node, c chan<- Item, lower,upper Item) {
 	if h == nil {
 		return
 	}
-	lessThanLower := h.item.LessThan(lower)
-	lessThanUpper := h.item.LessThan(upper)
+	lessThanLower := t.less(h.item, lower)
+	lessThanUpper := t.less(h.item, upper)
 	if !lessThanLower {
-		iterateRange(h.left, c, lower, upper)
+		t.iterateRange(h.left, c, lower, upper)
 	}
 	if !lessThanLower && lessThanUpper {
 		c <- h.item
 	}
 	if lessThanUpper {
-		iterateRange(h.right, c, lower, upper)
+		t.iterateRange(h.right, c, lower, upper)
 	}
 }
 
