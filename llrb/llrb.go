@@ -338,12 +338,23 @@ func (t *Tree) delete(h *node, item Item) (*node, Item) {
 	return fixUp(h), deleted
 }
 
-// Iter() returns a chan that iterates through all elements in the
-// tree in ascending order.
-func (t *Tree) Iter() <-chan Item {
+// IterAscend() returns a chan that iterates through all elements in
+// in ascending order.
+func (t *Tree) IterAscend() <-chan Item {
 	c := make(chan Item)
 	go func() {
 		iterateInOrder(t.root, c)
+		close(c)
+	}()
+	return c
+}
+
+// IterDescend() returns a chan that iterates through all elements
+// in descending order.
+func (t *Tree) IterDescend() <-chan Item {
+	c := make(chan Item)
+	go func() {
+		iterateInOrderRev(t.root, c)
 		close(c)
 	}()
 	return c
@@ -384,6 +395,15 @@ func iterateInOrder(h *node, c chan<- Item) {
 	iterateInOrder(h.left, c)
 	c <- h.item
 	iterateInOrder(h.right, c)
+}
+
+func iterateInOrderRev(h *node, c chan<- Item) {
+	if h == nil {
+		return
+	}
+	iterateInOrderRev(h.right, c)
+	c <- h.item
+	iterateInOrderRev(h.left, c)
 }
 
 func iteratePreOrder(h *node, c chan<- Item) {

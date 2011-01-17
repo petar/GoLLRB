@@ -52,7 +52,7 @@ func TestReverseInsertOrder(t *testing.T) {
 	for i := 0; i < n; i++ {
 		tree.ReplaceOrInsert(n - i)
 	}
-	c := tree.Iter()
+	c := tree.IterAscend()
 	for j, item := 1, <-c; item != nil; j, item = j+1, <-c {
 		if item.(int) != j {
 			t.Fatalf("bad order")
@@ -90,7 +90,7 @@ func TestRandomInsertOrder(t *testing.T) {
 	for i := 0; i < n; i++ {
 		tree.ReplaceOrInsert(perm[i])
 	}
-	c := tree.Iter()
+	c := tree.IterAscend()
 	for j, item := 0, <-c; item != nil; j, item = j+1, <-c {
 		if item.(int) != j {
 			t.Fatalf("bad order")
@@ -162,7 +162,7 @@ func TestRandomInsertPartialDeleteOrder(t *testing.T) {
 	for i := 1; i < n-1; i++ {
 		tree.Delete(i)
 	}
-	c := tree.Iter()
+	c := tree.IterAscend()
 	if (<-c).(int) != 0 {
 		t.Errorf("expecting 0")
 	}
@@ -225,7 +225,7 @@ func TestInsertNoReplace(t *testing.T) {
 			tree.InsertNoReplace(perm[i])
 		}
 	}
-	c := tree.Iter()
+	c := tree.IterAscend()
 	for j, item := 0, <-c; item != nil; j, item = j+1, <-c {
 		if item.(int) != j/2 {
 			t.Fatalf("bad order")
