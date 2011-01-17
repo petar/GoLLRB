@@ -15,6 +15,7 @@ core
 _obj
 _test
 src/pkg/Make.deps
+_testmain.go
 
 syntax:regexp
 ^pkg/

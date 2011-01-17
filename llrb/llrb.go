@@ -17,8 +17,6 @@ package llrb
 //  implementation of 2-3 trees is a recent improvement on the traditional implementation,
 //  observed and documented by Robert Sedgewick.
 //
-// Tree{} has an associative interface, i.e. duplicate keys are not allowed.
-// The zero-value of a Tree{} represents a ready-for-use tree.
 type Tree struct {
 	less  LessFunc
 	count int
@@ -100,21 +98,26 @@ func max(h *node) Item {
 	return max(h.right)
 }
 
-func (t *Tree) InsertOrReplaceBulk(items ...Item) {
+func (t *Tree) ReplaceOrInsertBulk(items ...Item) {
 	for _, i := range items {
-		t.InsertOrReplace(i)
+		t.ReplaceOrInsert(i)
 	}
 }
 
-// InsertOrReplace() inserts a new element in the tree, or replaces
-// an existing one of identical LessThan() order.
-// If a replacement occurred, the replaced item is returned.
-func (t *Tree) InsertOrReplace(item Item) Item {
+func (t *Tree) InsertNoReplaceBulk(items ...Item) {
+	for _, i := range items {
+		t.InsertNoReplace(i)
+	}
+}
+
+// ReplaceOrInsert() inserts @item into the tree. If an existing
+// element has the same order, it is removed from the tree and returned.
+func (t *Tree) ReplaceOrInsert(item Item) Item {
 	if item == nil {
 		panic("inserting nil item")
 	}
 	var replaced Item
-	t.root, replaced = t.insert(t.root, item)
+	t.root, replaced = t.replaceOrInsert(t.root, item)
 	t.root.black = true
 	if replaced == nil {
 		t.count++
@@ -122,22 +125,59 @@ func (t *Tree) InsertOrReplace(item Item) Item {
 	return replaced
 }
 
-func (t *Tree) insert(h *node, item Item) (*node, Item) {
+// InsertOrReplace() inserts @item into the tree. If an existing
+// element has the same order, both elements remain in the tree.
+func (t *Tree) InsertNoReplace(item Item) {
+	if item == nil {
+		panic("inserting nil item")
+	}
+	t.root = t.insertNoReplace(t.root, item)
+	t.root.black = true
+	t.count++
+}
+
+func (t *Tree) replaceOrInsert(h *node, item Item) (*node, Item) {
 	if h == nil {
 		return newNode(item), nil
 	}
 
-	// PLACEHOLDER: 2-3-4 tree (see comment below)
+	h = walkDownRot23(h)
 
 	var replaced Item
 	if t.less(item, h.item) {
-		h.left, replaced = t.insert(h.left, item)
+		h.left, replaced = t.replaceOrInsert(h.left, item)
 	} else if t.less(h.item, item) {
-		h.right, replaced = t.insert(h.right, item)
+		h.right, replaced = t.replaceOrInsert(h.right, item)
 	} else {
 		replaced, h.item = h.item, item
 	}
 
+	h = walkUpRot23(h)
+
+	return h, replaced
+}
+
+func (t *Tree) insertNoReplace(h *node, item Item) *node {
+	if h == nil {
+		return newNode(item)
+	}
+
+	h = walkDownRot23(h)
+
+	if t.less(item, h.item) {
+		h.left = t.insertNoReplace(h.left, item)
+	} else {
+		h.right = t.insertNoReplace(h.right, item)
+	}
+
+	return walkUpRot23(h)
+}
+
+// Rotation driver routines for 2-3 algorithm
+
+func walkDownRot23(h *node) *node { return h }
+
+func walkUpRot23(h *node) *node {
 	if isRed(h.right) && !isRed(h.left) {
 		h = rotateLeft(h)
 	}
@@ -147,14 +187,34 @@ func (t *Tree) insert(h *node, item Item) (*node, Item) {
 		h = rotateRight(h)
 	}
 
-	// When the next 3 lines of code are here, the LLRB behaves
-	// like a 2-3 tree. If they are moved to the 2-3-4 placeholder above,
-	// the LLRB tree behaves like a 2-3-4 tree.
 	if isRed(h.left) && isRed(h.right) {
 		flip(h)
 	}
 
-	return h, replaced
+	return h
+}
+
+// Rotation driver routines for 2-3-4 algorithm
+
+func walkDownRot234(h *node) *node {
+	if isRed(h.left) && isRed(h.right) {
+		flip(h)
+	}
+
+	return h
+}
+
+func walkUpRot234(h *node) *node {
+	if isRed(h.right) && !isRed(h.left) {
+		h = rotateLeft(h)
+	}
+
+	// PETAR: added 'h.left != nil'
+	if h.left != nil && isRed(h.left) && isRed(h.left.left) {
+		h = rotateRight(h)
+	}
+
+	return h
 }
 
 // DeleteMin() deletes the minimum element in the tree and returns the
@@ -300,7 +360,7 @@ func (t *Tree) IterRange(lower, upper Item) <-chan Item {
 	return c
 }
 
-func (t *Tree) iterateRange(h *node, c chan<- Item, lower,upper Item) {
+func (t *Tree) iterateRange(h *node, c chan<- Item, lower, upper Item) {
 	if h == nil {
 		return
 	}
