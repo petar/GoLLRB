@@ -21,6 +21,12 @@ University.
 
 GoLLRB is a Go implementation of LLRB 2-3 trees.
 
+## Maturity
+
+As of recently, GoLLRB has been used in some pretty heavy-weight machine
+learning tasks over many gigabytes of data. I consider it to be in stable,
+perhaps even production-grade, shape. There are no known bugs.
+
 ## Installation
 
 With a healthy Google Go installed, simply run `goinstall github.com/petar/GoLLRB/llrb`

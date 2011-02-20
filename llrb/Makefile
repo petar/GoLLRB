@@ -4,7 +4,7 @@
 
 include $(GOROOT)/src/Make.inc
 
-TARG=github.com/petar/GoLLRB
+TARG=github.com/petar/GoLLRB/llrb
 GOFILES=\
 	avgvar.go\
 	llrb.go \
