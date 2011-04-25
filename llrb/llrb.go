@@ -360,31 +360,31 @@ func (t *Tree) IterDescend() <-chan Item {
 	return c
 }
 
-// IterRangeClosed() returns a chan that iterates through all elements E in the
+// IterRangeInclusive() returns a chan that iterates through all elements E in the
 // tree with @lower <= E <= @upper in ascending order.
-func (t *Tree) IterRangeClosed(lower, upper Item) <-chan Item {
+func (t *Tree) IterRangeInclusive(lower, upper Item) <-chan Item {
 	c := make(chan Item)
 	go func() {
-		t.iterateRangeClosed(t.root, c, lower, upper)
+		t.iterateRangeInclusive(t.root, c, lower, upper)
 		close(c)
 	}()
 	return c
 }
 
-func (t *Tree) iterateRangeClosed(h *Node, c chan<- Item, lower, upper Item) {
+func (t *Tree) iterateRangeInclusive(h *Node, c chan<- Item, lower, upper Item) {
 	if h == nil {
 		return
 	}
 	lessThanLower := t.less(h.item, lower)
 	greaterThanUpper := t.less(upper, h.item)
 	if !lessThanLower {
-		t.iterateRange(h.left, c, lower, upper)
+		t.iterateRangeInclusive(h.left, c, lower, upper)
 	}
 	if !lessThanLower && !greaterThanUpper {
 		c <- h.item
 	}
 	if !greaterThanUpper {
-		t.iterateRange(h.right, c, lower, upper)
+		t.iterateRangeInclusive(h.right, c, lower, upper)
 	}
 }
 
