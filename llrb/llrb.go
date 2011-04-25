@@ -20,7 +20,7 @@ package llrb
 type Tree struct {
 	less  LessFunc
 	count int
-	root  *node
+	root  *Node
 }
 
 type Item interface{}
@@ -55,7 +55,7 @@ func (t *Tree) Get(key Item) Item {
 	return t.get(t.root, key)
 }
 
-func (t *Tree) get(h *node, item Item) Item {
+func (t *Tree) get(h *Node, item Item) Item {
 	if h == nil {
 		return nil
 	}
@@ -73,7 +73,7 @@ func (t *Tree) Min() Item {
 	return min(t.root)
 }
 
-func min(h *node) Item {
+func min(h *Node) Item {
 	if h == nil {
 		return nil
 	}
@@ -88,7 +88,7 @@ func (t *Tree) Max() Item {
 	return max(t.root)
 }
 
-func max(h *node) Item {
+func max(h *Node) Item {
 	if h == nil {
 		return nil
 	}
@@ -136,7 +136,7 @@ func (t *Tree) InsertNoReplace(item Item) {
 	t.count++
 }
 
-func (t *Tree) replaceOrInsert(h *node, item Item) (*node, Item) {
+func (t *Tree) replaceOrInsert(h *Node, item Item) (*Node, Item) {
 	if h == nil {
 		return newNode(item), nil
 	}
@@ -157,7 +157,7 @@ func (t *Tree) replaceOrInsert(h *node, item Item) (*node, Item) {
 	return h, replaced
 }
 
-func (t *Tree) insertNoReplace(h *node, item Item) *node {
+func (t *Tree) insertNoReplace(h *Node, item Item) *Node {
 	if h == nil {
 		return newNode(item)
 	}
@@ -175,9 +175,9 @@ func (t *Tree) insertNoReplace(h *node, item Item) *node {
 
 // Rotation driver routines for 2-3 algorithm
 
-func walkDownRot23(h *node) *node { return h }
+func walkDownRot23(h *Node) *Node { return h }
 
-func walkUpRot23(h *node) *node {
+func walkUpRot23(h *Node) *Node {
 	if isRed(h.right) && !isRed(h.left) {
 		h = rotateLeft(h)
 	}
@@ -196,7 +196,7 @@ func walkUpRot23(h *node) *node {
 
 // Rotation driver routines for 2-3-4 algorithm
 
-func walkDownRot234(h *node) *node {
+func walkDownRot234(h *Node) *Node {
 	if isRed(h.left) && isRed(h.right) {
 		flip(h)
 	}
@@ -204,7 +204,7 @@ func walkDownRot234(h *node) *node {
 	return h
 }
 
-func walkUpRot234(h *node) *node {
+func walkUpRot234(h *Node) *Node {
 	if isRed(h.right) && !isRed(h.left) {
 		h = rotateLeft(h)
 	}
@@ -232,7 +232,7 @@ func (t *Tree) DeleteMin() Item {
 }
 
 // deleteMin() code for LLRB 2-3 trees
-func deleteMin(h *node) (*node, Item) {
+func deleteMin(h *Node) (*Node, Item) {
 	if h == nil {
 		return nil, nil
 	}
@@ -264,7 +264,7 @@ func (t *Tree) DeleteMax() Item {
 	return deleted
 }
 
-func deleteMax(h *node) (*node, Item) {
+func deleteMax(h *Node) (*Node, Item) {
 	if h == nil {
 		return nil, nil
 	}
@@ -297,7 +297,7 @@ func (t *Tree) Delete(key Item) Item {
 	return deleted
 }
 
-func (t *Tree) delete(h *node, item Item) (*node, Item) {
+func (t *Tree) delete(h *Node, item Item) (*Node, Item) {
 	var deleted Item
 	if h == nil {
 		return nil, nil
@@ -360,6 +360,34 @@ func (t *Tree) IterDescend() <-chan Item {
 	return c
 }
 
+// IterRangeClosed() returns a chan that iterates through all elements E in the
+// tree with @lower <= E <= @upper in ascending order.
+func (t *Tree) IterRangeClosed(lower, upper Item) <-chan Item {
+	c := make(chan Item)
+	go func() {
+		t.iterateRangeClosed(t.root, c, lower, upper)
+		close(c)
+	}()
+	return c
+}
+
+func (t *Tree) iterateRangeClosed(h *Node, c chan<- Item, lower, upper Item) {
+	if h == nil {
+		return
+	}
+	lessThanLower := t.less(h.item, lower)
+	greaterThanUpper := t.less(upper, h.item)
+	if !lessThanLower {
+		t.iterateRange(h.left, c, lower, upper)
+	}
+	if !lessThanLower && !greaterThanUpper {
+		c <- h.item
+	}
+	if !greaterThanUpper {
+		t.iterateRange(h.right, c, lower, upper)
+	}
+}
+
 // IterRange() returns a chan that iterates through all elements E in the
 // tree with @lower <= E < @upper in ascending order.
 func (t *Tree) IterRange(lower, upper Item) <-chan Item {
@@ -371,7 +399,7 @@ func (t *Tree) IterRange(lower, upper Item) <-chan Item {
 	return c
 }
 
-func (t *Tree) iterateRange(h *node, c chan<- Item, lower, upper Item) {
+func (t *Tree) iterateRange(h *Node, c chan<- Item, lower, upper Item) {
 	if h == nil {
 		return
 	}
@@ -388,7 +416,7 @@ func (t *Tree) iterateRange(h *node, c chan<- Item, lower, upper Item) {
 	}
 }
 
-func iterateInOrder(h *node, c chan<- Item) {
+func iterateInOrder(h *Node, c chan<- Item) {
 	if h == nil {
 		return
 	}
@@ -397,7 +425,7 @@ func iterateInOrder(h *node, c chan<- Item) {
 	iterateInOrder(h.right, c)
 }
 
-func iterateInOrderRev(h *node, c chan<- Item) {
+func iterateInOrderRev(h *Node, c chan<- Item) {
 	if h == nil {
 		return
 	}
@@ -406,7 +434,7 @@ func iterateInOrderRev(h *node, c chan<- Item) {
 	iterateInOrderRev(h.left, c)
 }
 
-func iteratePreOrder(h *node, c chan<- Item) {
+func iteratePreOrder(h *Node, c chan<- Item) {
 	if h == nil {
 		return
 	}
@@ -415,7 +443,7 @@ func iteratePreOrder(h *node, c chan<- Item) {
 	iteratePreOrder(h.right, c)
 }
 
-func iteratePostOrder(h *node, c chan<- Item) {
+func iteratePostOrder(h *Node, c chan<- Item) {
 	if h == nil {
 		return
 	}
@@ -424,23 +452,23 @@ func iteratePostOrder(h *node, c chan<- Item) {
 	c <- h.item
 }
 
-type node struct {
+type Node struct {
 	item        Item
-	left, right *node // Pointers to left and right child nodes
+	left, right *Node // Pointers to left and right child nodes
 	black       bool  // If set, the color of the link (incoming from the parent) is black
 	// In the LLRB, new nodes are always red, hence the zero-value for node
 }
 
-func newNode(item Item) *node { return &node{item: item} }
+func newNode(item Item) *Node { return &Node{item: item} }
 
-func isRed(h *node) bool {
+func isRed(h *Node) bool {
 	if h == nil {
 		return false
 	}
 	return !h.black
 }
 
-func rotateLeft(h *node) *node {
+func rotateLeft(h *Node) *Node {
 	x := h.right
 	if x.black {
 		panic("rotating a black link")
@@ -452,7 +480,7 @@ func rotateLeft(h *node) *node {
 	return x
 }
 
-func rotateRight(h *node) *node {
+func rotateRight(h *Node) *Node {
 	x := h.left
 	if x.black {
 		panic("rotating a black link")
@@ -468,14 +496,14 @@ func rotateRight(h *node) *node {
 //      - Can flip() ever be called with |h.left == nil| or |h.right == nil|?
 
 // REQUIRE: Left and right children must be present
-func flip(h *node) {
+func flip(h *Node) {
 	h.black = !h.black
 	h.left.black = !h.left.black
 	h.right.black = !h.right.black
 }
 
 // REQUIRE: Left and right children must be present
-func moveRedLeft(h *node) *node {
+func moveRedLeft(h *Node) *Node {
 	flip(h)
 	if isRed(h.right.left) {
 		h.right = rotateRight(h.right)
@@ -486,7 +514,7 @@ func moveRedLeft(h *node) *node {
 }
 
 // REQUIRE: Left and right children must be present
-func moveRedRight(h *node) *node {
+func moveRedRight(h *Node) *Node {
 	flip(h)
 	if isRed(h.left.left) {
 		h = rotateRight(h)
@@ -495,7 +523,7 @@ func moveRedRight(h *node) *node {
 	return h
 }
 
-func fixUp(h *node) *node {
+func fixUp(h *Node) *Node {
 	if isRed(h.right) {
 		h = rotateLeft(h)
 	}

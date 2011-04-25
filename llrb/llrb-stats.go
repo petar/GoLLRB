@@ -9,7 +9,7 @@ func (t *Tree) GetHeight(key Item) (result Item, depth int) {
 	return t.getHeight(t.root, key)
 }
 
-func (t *Tree) getHeight(h *node, item Item) (Item, int) {
+func (t *Tree) getHeight(h *Node, item Item) (Item, int) {
 	if h == nil {
 		return nil, 0
 	}
@@ -32,7 +32,7 @@ func (t *Tree) HeightStats() (avg, stddev float64) {
 	return av.GetAvg(), av.GetStdDev()
 }
 
-func heightStats(h *node, d int, av *avgVar) {
+func heightStats(h *Node, d int, av *avgVar) {
 	if h == nil {
 		return
 	}
