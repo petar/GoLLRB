@@ -40,27 +40,23 @@ With a healthy Google Go installed, simply run `goinstall github.com/petar/GoLLR
 		"github.com/petar/GoLLRB/llrb"
 	)
 
-	type IntItem int
-
-	func (item IntItem) LessThan(other interface{}) bool {
-		return int(item) < int(other.(IntItem))
-	}
+	func lessInt(a, b interface{}) bool { return a.(int) < b.(int) }
 
 	func main() {
-		var tree llrb.Tree
-		tree.InsertOrReplace(IntItem(1))
-		tree.InsertOrReplace(IntItem(2))
-		tree.InsertOrReplace(IntItem(3))
-		tree.InsertOrReplace(IntItem(4))
+		tree := llrb.New(lessInt)
+		tree.ReplaceOrInsert(1)
+		tree.ReplaceOrInsert(2)
+		tree.ReplaceOrInsert(3)
+		tree.ReplaceOrInsert(4)
 		tree.DeleteMin()
-		tree.Delete(IntItem(4))
-		c := tree.Iter()
+		tree.Delete(4)
+		c := tree.IterAscend()
 		for {
 			u := <-c
 			if u == nil {
 				break
 			}
-			fmt.Printf("%d\n", int(u.(IntItem)))
+			fmt.Printf("%d\n", int(u.(int)))
 		}
 	}
 

@@ -125,17 +125,6 @@ func (t *Tree) ReplaceOrInsert(item Item) Item {
 	return replaced
 }
 
-// InsertOrReplace() inserts @item into the tree. If an existing
-// element has the same order, both elements remain in the tree.
-func (t *Tree) InsertNoReplace(item Item) {
-	if item == nil {
-		panic("inserting nil item")
-	}
-	t.root = t.insertNoReplace(t.root, item)
-	t.root.black = true
-	t.count++
-}
-
 func (t *Tree) replaceOrInsert(h *Node, item Item) (*Node, Item) {
 	if h == nil {
 		return newNode(item), nil
@@ -144,7 +133,7 @@ func (t *Tree) replaceOrInsert(h *Node, item Item) (*Node, Item) {
 	h = walkDownRot23(h)
 
 	var replaced Item
-	if t.less(item, h.item) {
+	if t.less(item, h.item) { // BUG
 		h.left, replaced = t.replaceOrInsert(h.left, item)
 	} else if t.less(h.item, item) {
 		h.right, replaced = t.replaceOrInsert(h.right, item)
@@ -155,6 +144,17 @@ func (t *Tree) replaceOrInsert(h *Node, item Item) (*Node, Item) {
 	h = walkUpRot23(h)
 
 	return h, replaced
+}
+
+// InsertNoReplace() inserts @item into the tree. If an existing
+// element has the same order, both elements remain in the tree.
+func (t *Tree) InsertNoReplace(item Item) {
+	if item == nil {
+		panic("inserting nil item")
+	}
+	t.root = t.insertNoReplace(t.root, item)
+	t.root.black = true
+	t.count++
 }
 
 func (t *Tree) insertNoReplace(h *Node, item Item) *Node {
