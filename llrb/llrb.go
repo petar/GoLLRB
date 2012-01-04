@@ -34,6 +34,15 @@ func New(lessfunc LessFunc) *Tree {
 	return t
 }
 
+func (t *Tree) SetRoot(r *Node) {
+	t.root = r
+}
+
+func (t *Tree) Root() *Node {
+	return t.root
+}
+
+
 // Init() resets (empties) the tree
 func (t *Tree) Init(lessfunc LessFunc) {
 	t.less = lessfunc
@@ -59,13 +68,13 @@ func (t *Tree) get(h *Node, item Item) Item {
 	if h == nil {
 		return nil
 	}
-	if t.less(item, h.item) {
-		return t.get(h.left, item)
+	if t.less(item, h.Item) {
+		return t.get(h.Left, item)
 	}
-	if t.less(h.item, item) {
-		return t.get(h.right, item)
+	if t.less(h.Item, item) {
+		return t.get(h.Right, item)
 	}
-	return h.item
+	return h.Item
 }
 
 // Min() returns the minimum element in the tree.
@@ -77,10 +86,10 @@ func min(h *Node) Item {
 	if h == nil {
 		return nil
 	}
-	if h.left == nil {
-		return h.item
+	if h.Left == nil {
+		return h.Item
 	}
-	return min(h.left)
+	return min(h.Left)
 }
 
 // Max() returns the maximum element in the tree.
@@ -92,10 +101,10 @@ func max(h *Node) Item {
 	if h == nil {
 		return nil
 	}
-	if h.right == nil {
-		return h.item
+	if h.Right == nil {
+		return h.Item
 	}
-	return max(h.right)
+	return max(h.Right)
 }
 
 func (t *Tree) ReplaceOrInsertBulk(items ...Item) {
@@ -118,7 +127,7 @@ func (t *Tree) ReplaceOrInsert(item Item) Item {
 	}
 	var replaced Item
 	t.root, replaced = t.replaceOrInsert(t.root, item)
-	t.root.black = true
+	t.root.Black = true
 	if replaced == nil {
 		t.count++
 	}
@@ -133,12 +142,12 @@ func (t *Tree) replaceOrInsert(h *Node, item Item) (*Node, Item) {
 	h = walkDownRot23(h)
 
 	var replaced Item
-	if t.less(item, h.item) { // BUG
-		h.left, replaced = t.replaceOrInsert(h.left, item)
-	} else if t.less(h.item, item) {
-		h.right, replaced = t.replaceOrInsert(h.right, item)
+	if t.less(item, h.Item) { // BUG
+		h.Left, replaced = t.replaceOrInsert(h.Left, item)
+	} else if t.less(h.Item, item) {
+		h.Right, replaced = t.replaceOrInsert(h.Right, item)
 	} else {
-		replaced, h.item = h.item, item
+		replaced, h.Item = h.Item, item
 	}
 
 	h = walkUpRot23(h)
@@ -153,7 +162,7 @@ func (t *Tree) InsertNoReplace(item Item) {
 		panic("inserting nil item")
 	}
 	t.root = t.insertNoReplace(t.root, item)
-	t.root.black = true
+	t.root.Black = true
 	t.count++
 }
 
@@ -164,10 +173,10 @@ func (t *Tree) insertNoReplace(h *Node, item Item) *Node {
 
 	h = walkDownRot23(h)
 
-	if t.less(item, h.item) {
-		h.left = t.insertNoReplace(h.left, item)
+	if t.less(item, h.Item) {
+		h.Left = t.insertNoReplace(h.Left, item)
 	} else {
-		h.right = t.insertNoReplace(h.right, item)
+		h.Right = t.insertNoReplace(h.Right, item)
 	}
 
 	return walkUpRot23(h)
@@ -178,16 +187,16 @@ func (t *Tree) insertNoReplace(h *Node, item Item) *Node {
 func walkDownRot23(h *Node) *Node { return h }
 
 func walkUpRot23(h *Node) *Node {
-	if isRed(h.right) && !isRed(h.left) {
+	if isRed(h.Right) && !isRed(h.Left) {
 		h = rotateLeft(h)
 	}
 
-	// PETAR: added 'h.left != nil'
-	if h.left != nil && isRed(h.left) && isRed(h.left.left) {
+	// PETAR: added 'h.Left != nil'
+	if h.Left != nil && isRed(h.Left) && isRed(h.Left.Left) {
 		h = rotateRight(h)
 	}
 
-	if isRed(h.left) && isRed(h.right) {
+	if isRed(h.Left) && isRed(h.Right) {
 		flip(h)
 	}
 
@@ -197,7 +206,7 @@ func walkUpRot23(h *Node) *Node {
 // Rotation driver routines for 2-3-4 algorithm
 
 func walkDownRot234(h *Node) *Node {
-	if isRed(h.left) && isRed(h.right) {
+	if isRed(h.Left) && isRed(h.Right) {
 		flip(h)
 	}
 
@@ -205,12 +214,12 @@ func walkDownRot234(h *Node) *Node {
 }
 
 func walkUpRot234(h *Node) *Node {
-	if isRed(h.right) && !isRed(h.left) {
+	if isRed(h.Right) && !isRed(h.Left) {
 		h = rotateLeft(h)
 	}
 
-	// PETAR: added 'h.left != nil'
-	if h.left != nil && isRed(h.left) && isRed(h.left.left) {
+	// PETAR: added 'h.Left != nil'
+	if h.Left != nil && isRed(h.Left) && isRed(h.Left.Left) {
 		h = rotateRight(h)
 	}
 
@@ -223,7 +232,7 @@ func (t *Tree) DeleteMin() Item {
 	var deleted Item
 	t.root, deleted = deleteMin(t.root)
 	if t.root != nil {
-		t.root.black = true
+		t.root.Black = true
 	}
 	if deleted != nil {
 		t.count--
@@ -236,16 +245,16 @@ func deleteMin(h *Node) (*Node, Item) {
 	if h == nil {
 		return nil, nil
 	}
-	if h.left == nil {
-		return nil, h.item
+	if h.Left == nil {
+		return nil, h.Item
 	}
 
-	if !isRed(h.left) && !isRed(h.left.left) {
+	if !isRed(h.Left) && !isRed(h.Left.Left) {
 		h = moveRedLeft(h)
 	}
 
 	var deleted Item
-	h.left, deleted = deleteMin(h.left)
+	h.Left, deleted = deleteMin(h.Left)
 
 	return fixUp(h), deleted
 }
@@ -256,7 +265,7 @@ func (t *Tree) DeleteMax() Item {
 	var deleted Item
 	t.root, deleted = deleteMax(t.root)
 	if t.root != nil {
-		t.root.black = true
+		t.root.Black = true
 	}
 	if deleted != nil {
 		t.count--
@@ -268,17 +277,17 @@ func deleteMax(h *Node) (*Node, Item) {
 	if h == nil {
 		return nil, nil
 	}
-	if isRed(h.left) {
+	if isRed(h.Left) {
 		h = rotateRight(h)
 	}
-	if h.right == nil {
-		return nil, h.item
+	if h.Right == nil {
+		return nil, h.Item
 	}
-	if !isRed(h.right) && !isRed(h.right.left) {
+	if !isRed(h.Right) && !isRed(h.Right.Left) {
 		h = moveRedRight(h)
 	}
 	var deleted Item
-	h.right, deleted = deleteMax(h.right)
+	h.Right, deleted = deleteMax(h.Right)
 
 	return fixUp(h), deleted
 }
@@ -289,7 +298,7 @@ func (t *Tree) Delete(key Item) Item {
 	var deleted Item
 	t.root, deleted = t.delete(t.root, key)
 	if t.root != nil {
-		t.root.black = true
+		t.root.Black = true
 	}
 	if deleted != nil {
 		t.count--
@@ -302,36 +311,36 @@ func (t *Tree) delete(h *Node, item Item) (*Node, Item) {
 	if h == nil {
 		return nil, nil
 	}
-	if t.less(item, h.item) {
-		if h.left == nil { // item not present. Nothing to delete
+	if t.less(item, h.Item) {
+		if h.Left == nil { // item not present. Nothing to delete
 			return h, nil
 		}
-		if !isRed(h.left) && !isRed(h.left.left) {
+		if !isRed(h.Left) && !isRed(h.Left.Left) {
 			h = moveRedLeft(h)
 		}
-		h.left, deleted = t.delete(h.left, item)
+		h.Left, deleted = t.delete(h.Left, item)
 	} else {
-		if isRed(h.left) {
+		if isRed(h.Left) {
 			h = rotateRight(h)
 		}
-		// If @item equals @h.item and no right children at @h
-		if !t.less(h.item, item) && h.right == nil {
-			return nil, h.item
+		// If @item equals @h.Item and no right children at @h
+		if !t.less(h.Item, item) && h.Right == nil {
+			return nil, h.Item
 		}
-		// PETAR: Added 'h.right != nil' below
-		if h.right != nil && !isRed(h.right) && !isRed(h.right.left) {
+		// PETAR: Added 'h.Right != nil' below
+		if h.Right != nil && !isRed(h.Right) && !isRed(h.Right.Left) {
 			h = moveRedRight(h)
 		}
-		// If @item equals @h.item, and (from above) 'h.right != nil'
-		if !t.less(h.item, item) {
+		// If @item equals @h.Item, and (from above) 'h.Right != nil'
+		if !t.less(h.Item, item) {
 			var subDeleted Item
-			h.right, subDeleted = deleteMin(h.right)
+			h.Right, subDeleted = deleteMin(h.Right)
 			if subDeleted == nil {
 				panic("logic")
 			}
-			deleted, h.item = h.item, subDeleted
-		} else { // Else, @item is bigger than @h.item
-			h.right, deleted = t.delete(h.right, item)
+			deleted, h.Item = h.Item, subDeleted
+		} else { // Else, @item is bigger than @h.Item
+			h.Right, deleted = t.delete(h.Right, item)
 		}
 	}
 
@@ -375,16 +384,16 @@ func (t *Tree) iterateRangeInclusive(h *Node, c chan<- Item, lower, upper Item) 
 	if h == nil {
 		return
 	}
-	lessThanLower := t.less(h.item, lower)
-	greaterThanUpper := t.less(upper, h.item)
+	lessThanLower := t.less(h.Item, lower)
+	greaterThanUpper := t.less(upper, h.Item)
 	if !lessThanLower {
-		t.iterateRangeInclusive(h.left, c, lower, upper)
+		t.iterateRangeInclusive(h.Left, c, lower, upper)
 	}
 	if !lessThanLower && !greaterThanUpper {
-		c <- h.item
+		c <- h.Item
 	}
 	if !greaterThanUpper {
-		t.iterateRangeInclusive(h.right, c, lower, upper)
+		t.iterateRangeInclusive(h.Right, c, lower, upper)
 	}
 }
 
@@ -403,16 +412,16 @@ func (t *Tree) iterateRange(h *Node, c chan<- Item, lower, upper Item) {
 	if h == nil {
 		return
 	}
-	lessThanLower := t.less(h.item, lower)
-	lessThanUpper := t.less(h.item, upper)
+	lessThanLower := t.less(h.Item, lower)
+	lessThanUpper := t.less(h.Item, upper)
 	if !lessThanLower {
-		t.iterateRange(h.left, c, lower, upper)
+		t.iterateRange(h.Left, c, lower, upper)
 	}
 	if !lessThanLower && lessThanUpper {
-		c <- h.item
+		c <- h.Item
 	}
 	if lessThanUpper {
-		t.iterateRange(h.right, c, lower, upper)
+		t.iterateRange(h.Right, c, lower, upper)
 	}
 }
 
@@ -420,93 +429,93 @@ func iterateInOrder(h *Node, c chan<- Item) {
 	if h == nil {
 		return
 	}
-	iterateInOrder(h.left, c)
-	c <- h.item
-	iterateInOrder(h.right, c)
+	iterateInOrder(h.Left, c)
+	c <- h.Item
+	iterateInOrder(h.Right, c)
 }
 
 func iterateInOrderRev(h *Node, c chan<- Item) {
 	if h == nil {
 		return
 	}
-	iterateInOrderRev(h.right, c)
-	c <- h.item
-	iterateInOrderRev(h.left, c)
+	iterateInOrderRev(h.Right, c)
+	c <- h.Item
+	iterateInOrderRev(h.Left, c)
 }
 
 func iteratePreOrder(h *Node, c chan<- Item) {
 	if h == nil {
 		return
 	}
-	c <- h.item
-	iteratePreOrder(h.left, c)
-	iteratePreOrder(h.right, c)
+	c <- h.Item
+	iteratePreOrder(h.Left, c)
+	iteratePreOrder(h.Right, c)
 }
 
 func iteratePostOrder(h *Node, c chan<- Item) {
 	if h == nil {
 		return
 	}
-	iteratePostOrder(h.left, c)
-	iteratePostOrder(h.right, c)
-	c <- h.item
+	iteratePostOrder(h.Left, c)
+	iteratePostOrder(h.Right, c)
+	c <- h.Item
 }
 
 type Node struct {
-	item        Item
-	left, right *Node // Pointers to left and right child nodes
-	black       bool  // If set, the color of the link (incoming from the parent) is black
+	Item        Item
+	Left, Right *Node // Pointers to left and right child nodes
+	Black       bool  // If set, the color of the link (incoming from the parent) is black
 	// In the LLRB, new nodes are always red, hence the zero-value for node
 }
 
-func newNode(item Item) *Node { return &Node{item: item} }
+func newNode(item Item) *Node { return &Node{Item: item} }
 
 func isRed(h *Node) bool {
 	if h == nil {
 		return false
 	}
-	return !h.black
+	return !h.Black
 }
 
 func rotateLeft(h *Node) *Node {
-	x := h.right
-	if x.black {
+	x := h.Right
+	if x.Black {
 		panic("rotating a black link")
 	}
-	h.right = x.left
-	x.left = h
-	x.black = h.black
-	h.black = false
+	h.Right = x.Left
+	x.Left = h
+	x.Black = h.Black
+	h.Black = false
 	return x
 }
 
 func rotateRight(h *Node) *Node {
-	x := h.left
-	if x.black {
+	x := h.Left
+	if x.Black {
 		panic("rotating a black link")
 	}
-	h.left = x.right
-	x.right = h
-	x.black = h.black
-	h.black = false
+	h.Left = x.Right
+	x.Right = h
+	x.Black = h.Black
+	h.Black = false
 	return x
 }
 
 // XXX:
-//      - Can flip() ever be called with |h.left == nil| or |h.right == nil|?
+//      - Can flip() ever be called with |h.Left == nil| or |h.Right == nil|?
 
 // REQUIRE: Left and right children must be present
 func flip(h *Node) {
-	h.black = !h.black
-	h.left.black = !h.left.black
-	h.right.black = !h.right.black
+	h.Black = !h.Black
+	h.Left.Black = !h.Left.Black
+	h.Right.Black = !h.Right.Black
 }
 
 // REQUIRE: Left and right children must be present
 func moveRedLeft(h *Node) *Node {
 	flip(h)
-	if isRed(h.right.left) {
-		h.right = rotateRight(h.right)
+	if isRed(h.Right.Left) {
+		h.Right = rotateRight(h.Right)
 		h = rotateLeft(h)
 		flip(h)
 	}
@@ -516,7 +525,7 @@ func moveRedLeft(h *Node) *Node {
 // REQUIRE: Left and right children must be present
 func moveRedRight(h *Node) *Node {
 	flip(h)
-	if isRed(h.left.left) {
+	if isRed(h.Left.Left) {
 		h = rotateRight(h)
 		flip(h)
 	}
@@ -524,16 +533,16 @@ func moveRedRight(h *Node) *Node {
 }
 
 func fixUp(h *Node) *Node {
-	if isRed(h.right) {
+	if isRed(h.Right) {
 		h = rotateLeft(h)
 	}
 
-	// PETAR: added 'h.left != nil'
-	if h.left != nil && isRed(h.left) && isRed(h.left.left) {
+	// PETAR: added 'h.Left != nil'
+	if h.Left != nil && isRed(h.Left) && isRed(h.Left.Left) {
 		h = rotateRight(h)
 	}
 
-	if isRed(h.left) && isRed(h.right) {
+	if isRed(h.Left) && isRed(h.Right) {
 		flip(h)
 	}
 

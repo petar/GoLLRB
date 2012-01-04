@@ -13,15 +13,15 @@ func (t *Tree) getHeight(h *Node, item Item) (Item, int) {
 	if h == nil {
 		return nil, 0
 	}
-	if t.less(item, h.item) {
-		result, depth := t.getHeight(h.left, item)
+	if t.less(item, h.Item) {
+		result, depth := t.getHeight(h.Left, item)
 		return result, depth + 1
 	}
-	if t.less(h.item, item) {
-		result, depth := t.getHeight(h.right, item)
+	if t.less(h.Item, item) {
+		result, depth := t.getHeight(h.Right, item)
 		return result, depth + 1
 	}
-	return h.item, 0
+	return h.Item, 0
 }
 
 // HeightStats() returns the average and standard deviation of the height
@@ -37,10 +37,10 @@ func heightStats(h *Node, d int, av *avgVar) {
 		return
 	}
 	av.Add(float64(d))
-	if h.left != nil {
-		heightStats(h.left, d+1, av)
+	if h.Left != nil {
+		heightStats(h.Left, d+1, av)
 	}
-	if h.right != nil {
-		heightStats(h.right, d+1, av)
+	if h.Right != nil {
+		heightStats(h.Right, d+1, av)
 	}
 }
