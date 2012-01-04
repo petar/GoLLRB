@@ -6,7 +6,7 @@ package llrb
 
 import (
 	"math"
-	"rand"
+	"math/rand"
 	"testing"
 )
 
@@ -180,7 +180,7 @@ func TestRandomInsertStats(t *testing.T) {
 	}
 	avg, _ := tree.HeightStats()
 	expAvg := math.Log2(float64(n)) - 1.5
-	if math.Fabs(avg-expAvg) >= 2.0 {
+	if math.Abs(avg-expAvg) >= 2.0 {
 		t.Errorf("too much deviation from expected average height")
 	}
 }
