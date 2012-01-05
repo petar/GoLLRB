@@ -1,11 +1,11 @@
 # GoLLRB
 
 GoLLRB is a Left-Leaning Red-Black (LLRB) implementation of 2-3 balanced binary
-search trees in Google Go.
+search trees in Go Language.
 
 ## Overview
 
-As of this writing and to the best of the author's knowledge, Google
+As of this writing and to the best of the author's knowledge, 
 Go still does not have a balanced binary search tree (BBST) data structure.
 These data structures are quite useful in a variety of cases. A BBST maintains
 elements in sorted order under dynamic updates (inserts and deletes) and can
@@ -23,13 +23,12 @@ GoLLRB is a Go implementation of LLRB 2-3 trees.
 
 ## Maturity
 
-As of recently, GoLLRB has been used in some pretty heavy-weight machine
-learning tasks over many gigabytes of data. I consider it to be in stable,
-perhaps even production-grade, shape. There are no known bugs.
+GoLLRB has been used in some pretty heavy-weight machine learning tasks over many gigabytes of data.
+I consider it to be in stable, perhaps even production, shape. There are no known bugs.
 
 ## Installation
 
-With a healthy Google Go installed, simply run `goinstall github.com/petar/GoLLRB/llrb`
+With a healthy Go Language installed, simply run `goinstall github.com/petar/GoLLRB/llrb`
 
 ## Example
     
@@ -65,4 +64,3 @@ With a healthy Google Go installed, simply run `goinstall github.com/petar/GoLLR
 GoLLRB was written by [Petar Maymounkov](http://pdos.csail.mit.edu/~petar/). 
 
 Follow me on [Twitter @maymounkov](http://www.twitter.com/maymounkov)!
-
