@@ -23,6 +23,13 @@ type Tree struct {
 	root  *Node
 }
 
+type Node struct {
+	item        Item
+	left, right *Node // Pointers to left and right child nodes
+	black       bool  // If set, the color of the link (incoming from the parent) is black
+	                  // In the LLRB, new nodes are always red, hence the zero-value for node
+}
+
 type Item interface{}
 
 type LessFunc func(a, b interface{}) bool
@@ -49,53 +56,44 @@ func (t *Tree) Has(key Item) bool {
 	return t.Get(key) != nil
 }
 
-// Get() retrieves an element from the tree whose LessThan() order
-// equals that of @key.
+// Get retrieves an element from the tree whose LessThan order
+// equals that of key.
 func (t *Tree) Get(key Item) Item {
-	return t.get(t.root, key)
+	h := t.root
+	for h != nil {
+		if t.less(key, h.item) {
+			h = h.left
+		} else if t.less(h.item, key) {
+			h = h.right
+		} else {
+			return h.item
+		}
+	}
+	return nil
 }
 
-func (t *Tree) get(h *Node, item Item) Item {
+// Min returns the minimum element in the tree.
+func (t *Tree) Min() Item {
+	h := t.root
 	if h == nil {
 		return nil
 	}
-	if t.less(item, h.item) {
-		return t.get(h.left, item)
-	}
-	if t.less(h.item, item) {
-		return t.get(h.right, item)
+	for h.left != nil {
+		h = h.left
 	}
 	return h.item
 }
 
-// Min() returns the minimum element in the tree.
-func (t *Tree) Min() Item {
-	return min(t.root)
-}
-
-func min(h *Node) Item {
-	if h == nil {
-		return nil
-	}
-	if h.left == nil {
-		return h.item
-	}
-	return min(h.left)
-}
-
-// Max() returns the maximum element in the tree.
+// Max returns the maximum element in the tree.
 func (t *Tree) Max() Item {
-	return max(t.root)
-}
-
-func max(h *Node) Item {
+	h := t.root
 	if h == nil {
 		return nil
 	}
-	if h.right == nil {
-		return h.item
+	for h.right != nil {
+		h = h.right
 	}
-	return max(h.right)
+	return h.item
 }
 
 func (t *Tree) ReplaceOrInsertBulk(items ...Item) {
@@ -182,8 +180,7 @@ func walkUpRot23(h *Node) *Node {
 		h = rotateLeft(h)
 	}
 
-	// PETAR: added 'h.left != nil'
-	if h.left != nil && isRed(h.left) && isRed(h.left.left) {
+	if isRed(h.left) && isRed(h.left.left) {
 		h = rotateRight(h)
 	}
 
@@ -209,8 +206,7 @@ func walkUpRot234(h *Node) *Node {
 		h = rotateLeft(h)
 	}
 
-	// PETAR: added 'h.left != nil'
-	if h.left != nil && isRed(h.left) && isRed(h.left.left) {
+	if isRed(h.left) && isRed(h.left.left) {
 		h = rotateRight(h)
 	}
 
@@ -452,12 +448,7 @@ func iteratePostOrder(h *Node, c chan<- Item) {
 	c <- h.item
 }
 
-type Node struct {
-	item        Item
-	left, right *Node // Pointers to left and right child nodes
-	black       bool  // If set, the color of the link (incoming from the parent) is black
-	// In the LLRB, new nodes are always red, hence the zero-value for node
-}
+// Internal node manipulation routines
 
 func newNode(item Item) *Node { return &Node{item: item} }
 
@@ -492,9 +483,6 @@ func rotateRight(h *Node) *Node {
 	return x
 }
 
-// XXX:
-//      - Can flip() ever be called with |h.left == nil| or |h.right == nil|?
-
 // REQUIRE: Left and right children must be present
 func flip(h *Node) {
 	h.black = !h.black
@@ -528,8 +516,7 @@ func fixUp(h *Node) *Node {
 		h = rotateLeft(h)
 	}
 
-	// PETAR: added 'h.left != nil'
-	if h.left != nil && isRed(h.left) && isRed(h.left.left) {
+	if isRed(h.left) && isRed(h.left.left) {
 		h = rotateRight(h)
 	}
 
