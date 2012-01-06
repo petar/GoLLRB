@@ -74,11 +74,12 @@ func (t *Tree) Has(key Item) bool {
 func (t *Tree) Get(key Item) Item {
 	h := t.root
 	for h != nil {
-		if t.less(key, h.Item) {
+		switch {
+		case t.less(key, h.Item):
 			h = h.Left
-		} else if t.less(h.Item, key) {
+		case t.less(h.Item, key):
 			h = h.Right
-		} else {
+		default:
 			return h.Item
 		}
 	}
