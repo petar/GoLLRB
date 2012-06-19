@@ -28,7 +28,7 @@ I consider it to be in stable, perhaps even production, shape. There are no know
 
 ## Installation
 
-With a healthy Go Language installed, simply run `goinstall github.com/petar/GoLLRB/llrb`
+With a healthy Go Language installed, simply run `go get github.com/petar/GoLLRB/llrb`
 
 ## Example
     
