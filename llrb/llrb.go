@@ -367,9 +367,7 @@ func (t *Tree) eachInOrder(h *Node, lower Item, iterator ItemIterator) bool {
 				return false
 			}
 		}
-		if !t.eachInOrder(h.Right, lower, iterator) {
-			return false
-		}
+		return t.eachInOrder(h.Right, lower, iterator)
 	} 
 	return true
 }
@@ -417,9 +415,7 @@ func (t *Tree) eachInOrderRev(h *Node, upper Item, iterator ItemIterator) bool {
 				return false
 			}
 		}
-		if !t.eachInOrderRev(h.Left, upper, iterator) {
-			return false
-		}
+		return t.eachInOrderRev(h.Left, upper, iterator)
 	} 
 	return true
 }
