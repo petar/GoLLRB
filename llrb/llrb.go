@@ -32,6 +32,8 @@ type Node struct {
 
 type Item interface{}
 
+type ItemIterator func(i Item) bool
+
 type LessFunc func(a, b interface{}) bool
 
 // New() allocates a new tree
@@ -348,6 +350,28 @@ func (t *Tree) delete(h *Node, item Item) (*Node, Item) {
 	return fixUp(h), deleted
 }
 
+// EachAscend will call iterator once for each element greater than lower in
+// ascending order. It will stop whenever the iterator returns 
+// false.
+func (t *Tree) EachAscend(lower Item, iterator ItemIterator) {
+	t.eachInOrder(t.root, lower, iterator)
+}
+
+func (t *Tree) eachInOrder(h *Node, lower Item, iterator ItemIterator) bool {
+	if h != nil {
+		if !t.less(h.Item, lower) {
+			if !t.eachInOrder(h.Left, lower, iterator) {
+				return false
+			}
+			if !iterator(h.Item) {
+				return false
+			}
+		}
+		return t.eachInOrder(h.Right, lower, iterator)
+	} 
+	return true
+}
+
 // IterAscend returns a chan that iterates through all elements in
 // in ascending order.
 // TODO: This is a deprecated interface for iteration.
@@ -360,6 +384,8 @@ func (t *Tree) IterAscend() <-chan Item {
 	return c
 }
 
+
+
 // IterDescend returns a chan that iterates through all elements
 // in descending order.
 // TODO: This is a deprecated interface for iteration.
@@ -370,6 +396,28 @@ func (t *Tree) IterDescend() <-chan Item {
 		close(c)
 	}()
 	return c
+}
+
+// EachAscend will call iterator once for each element less than upper in
+// ascending order. It will stop whenever the iterator returns 
+// false.
+func (t *Tree) EachDescend(upper Item, iterator ItemIterator) {
+	t.eachInOrderRev(t.root, upper, iterator)
+}
+
+func (t *Tree) eachInOrderRev(h *Node, upper Item, iterator ItemIterator) bool {
+	if h != nil {
+		if !t.less(upper, h.Item) {
+			if !t.eachInOrderRev(h.Right, upper, iterator) {
+				return false
+			}
+			if !iterator(h.Item) {
+				return false
+			}
+		}
+		return t.eachInOrderRev(h.Left, upper, iterator)
+	} 
+	return true
 }
 
 // IterRangeInclusive returns a chan that iterates through all elements E in the

@@ -7,6 +7,7 @@ package llrb
 import (
 	"math"
 	"math/rand"
+	"reflect"
 	"testing"
 )
 
@@ -230,5 +231,75 @@ func TestInsertNoReplace(t *testing.T) {
 		if item.(int) != j/2 {
 			t.Fatalf("bad order")
 		}
+	}
+}
+
+func TestEachAscend(t *testing.T) {
+	tree := New(IntLess)
+	tree.InsertNoReplace(4)
+	tree.InsertNoReplace(6)
+	tree.InsertNoReplace(1)
+	tree.InsertNoReplace(3)
+	var ary []Item
+	tree.EachAscend(-1, func(i Item) bool {
+		ary = append(ary, i)
+		return true
+	});
+	expected := []Item{1,3,4,6}
+	if !reflect.DeepEqual(ary, expected) {
+		t.Errorf("expected %v but got %v", expected, ary)
+	}
+	ary = nil
+	tree.EachAscend(3, func(i Item) bool {
+		ary = append(ary, i)
+		return true
+	});
+	expected = []Item{3,4,6}
+	if !reflect.DeepEqual(ary, expected) {
+		t.Errorf("expected %v but got %v", expected, ary)
+	}
+	ary = nil
+	tree.EachAscend(2, func(i Item) bool {
+		ary = append(ary, i)
+		return true
+	});
+	expected = []Item{3,4,6}
+	if !reflect.DeepEqual(ary, expected) {
+		t.Errorf("expected %v but got %v", expected, ary)
+	}
+}
+
+func TestEachDescend(t *testing.T) {
+	tree := New(IntLess)
+	tree.InsertNoReplace(4)
+	tree.InsertNoReplace(6)
+	tree.InsertNoReplace(1)
+	tree.InsertNoReplace(3)
+	var ary []Item
+	tree.EachDescend(10, func(i Item) bool {
+		ary = append(ary, i)
+		return true
+	});
+	expected := []Item{6,4,3,1}
+	if !reflect.DeepEqual(ary, expected) {
+		t.Errorf("expected %v but got %v", expected, ary)
+	}
+	ary = nil
+	tree.EachDescend(4, func(i Item) bool {
+		ary = append(ary, i)
+		return true
+	});
+	expected = []Item{4,3,1}
+	if !reflect.DeepEqual(ary, expected) {
+		t.Errorf("expected %v but got %v", expected, ary)
+	}
+	ary = nil
+	tree.EachDescend(5, func(i Item) bool {
+		ary = append(ary, i)
+		return true
+	});
+	expected = []Item{4,3,1}
+	if !reflect.DeepEqual(ary, expected) {
+		t.Errorf("expected %v but got %v", expected, ary)
 	}
 }
