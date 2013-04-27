@@ -17,7 +17,7 @@
 package llrb
 
 // Tree is a Left-Leaning Red-Black (LLRB) implementation of 2-3 trees
-type Tree struct {
+type LLRB struct {
 	count int
 	root  *Node
 }
@@ -74,32 +74,32 @@ func (pInf) Less(Item) bool {
 }
 
 // New() allocates a new tree
-func New() *Tree {
-	return &Tree{}
+func New() *LLRB {
+	return &LLRB{}
 }
 
 // SetRoot sets the root node of the tree.
 // It is intended to be used by functions that deserialize the tree.
-func (t *Tree) SetRoot(r *Node) {
+func (t *LLRB) SetRoot(r *Node) {
 	t.root = r
 }
 
 // Root returns the root node of the tree.
 // It is intended to be used by functions that serialize the tree.
-func (t *Tree) Root() *Node {
+func (t *LLRB) Root() *Node {
 	return t.root
 }
 
 // Len returns the number of nodes in the tree.
-func (t *Tree) Len() int { return t.count }
+func (t *LLRB) Len() int { return t.count }
 
 // Has returns true if the tree contains an element whose order is the same as that of key.
-func (t *Tree) Has(key Item) bool {
+func (t *LLRB) Has(key Item) bool {
 	return t.Get(key) != nil
 }
 
 // Get retrieves an element from the tree whose order is the same as that of key.
-func (t *Tree) Get(key Item) Item {
+func (t *LLRB) Get(key Item) Item {
 	h := t.root
 	for h != nil {
 		switch {
@@ -115,7 +115,7 @@ func (t *Tree) Get(key Item) Item {
 }
 
 // Min returns the minimum element in the tree.
-func (t *Tree) Min() Item {
+func (t *LLRB) Min() Item {
 	h := t.root
 	if h == nil {
 		return nil
@@ -127,7 +127,7 @@ func (t *Tree) Min() Item {
 }
 
 // Max returns the maximum element in the tree.
-func (t *Tree) Max() Item {
+func (t *LLRB) Max() Item {
 	h := t.root
 	if h == nil {
 		return nil
@@ -138,13 +138,13 @@ func (t *Tree) Max() Item {
 	return h.Item
 }
 
-func (t *Tree) ReplaceOrInsertBulk(items ...Item) {
+func (t *LLRB) ReplaceOrInsertBulk(items ...Item) {
 	for _, i := range items {
 		t.ReplaceOrInsert(i)
 	}
 }
 
-func (t *Tree) InsertNoReplaceBulk(items ...Item) {
+func (t *LLRB) InsertNoReplaceBulk(items ...Item) {
 	for _, i := range items {
 		t.InsertNoReplace(i)
 	}
@@ -152,7 +152,7 @@ func (t *Tree) InsertNoReplaceBulk(items ...Item) {
 
 // ReplaceOrInsert inserts item into the tree. If an existing
 // element has the same order, it is removed from the tree and returned.
-func (t *Tree) ReplaceOrInsert(item Item) Item {
+func (t *LLRB) ReplaceOrInsert(item Item) Item {
 	if item == nil {
 		panic("inserting nil item")
 	}
@@ -165,7 +165,7 @@ func (t *Tree) ReplaceOrInsert(item Item) Item {
 	return replaced
 }
 
-func (t *Tree) replaceOrInsert(h *Node, item Item) (*Node, Item) {
+func (t *LLRB) replaceOrInsert(h *Node, item Item) (*Node, Item) {
 	if h == nil {
 		return newNode(item), nil
 	}
@@ -188,7 +188,7 @@ func (t *Tree) replaceOrInsert(h *Node, item Item) (*Node, Item) {
 
 // InsertNoReplace inserts item into the tree. If an existing
 // element has the same order, both elements remain in the tree.
-func (t *Tree) InsertNoReplace(item Item) {
+func (t *LLRB) InsertNoReplace(item Item) {
 	if item == nil {
 		panic("inserting nil item")
 	}
@@ -197,7 +197,7 @@ func (t *Tree) InsertNoReplace(item Item) {
 	t.count++
 }
 
-func (t *Tree) insertNoReplace(h *Node, item Item) *Node {
+func (t *LLRB) insertNoReplace(h *Node, item Item) *Node {
 	if h == nil {
 		return newNode(item)
 	}
@@ -257,7 +257,7 @@ func walkUpRot234(h *Node) *Node {
 
 // DeleteMin deletes the minimum element in the tree and returns the
 // deleted item or nil otherwise.
-func (t *Tree) DeleteMin() Item {
+func (t *LLRB) DeleteMin() Item {
 	var deleted Item
 	t.root, deleted = deleteMin(t.root)
 	if t.root != nil {
@@ -290,7 +290,7 @@ func deleteMin(h *Node) (*Node, Item) {
 
 // DeleteMax deletes the maximum element in the tree and returns
 // the deleted item or nil otherwise
-func (t *Tree) DeleteMax() Item {
+func (t *LLRB) DeleteMax() Item {
 	var deleted Item
 	t.root, deleted = deleteMax(t.root)
 	if t.root != nil {
@@ -323,7 +323,7 @@ func deleteMax(h *Node) (*Node, Item) {
 
 // Delete deletes an item from the tree whose key equals key.
 // The deleted item is return, otherwise nil is returned.
-func (t *Tree) Delete(key Item) Item {
+func (t *LLRB) Delete(key Item) Item {
 	var deleted Item
 	t.root, deleted = t.delete(t.root, key)
 	if t.root != nil {
@@ -335,7 +335,7 @@ func (t *Tree) Delete(key Item) Item {
 	return deleted
 }
 
-func (t *Tree) delete(h *Node, item Item) (*Node, Item) {
+func (t *LLRB) delete(h *Node, item Item) (*Node, Item) {
 	var deleted Item
 	if h == nil {
 		return nil, nil

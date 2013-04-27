@@ -6,11 +6,11 @@ type ItemIterator func(i Item) bool
 //	t.AscendGreaterOrEqual(Inf(-1), iterator)
 //}
 
-func (t *Tree) AscendRange(greaterOrEqual, lessThan Item, iterator ItemIterator) {
+func (t *LLRB) AscendRange(greaterOrEqual, lessThan Item, iterator ItemIterator) {
 	t.ascendRange(t.root, greaterOrEqual, lessThan, iterator)
 }
 
-func (t *Tree) ascendRange(h *Node, inf, sup Item, iterator ItemIterator) bool {
+func (t *LLRB) ascendRange(h *Node, inf, sup Item, iterator ItemIterator) bool {
 	if h == nil {
 		return true
 	}
@@ -32,11 +32,11 @@ func (t *Tree) ascendRange(h *Node, inf, sup Item, iterator ItemIterator) bool {
 
 // AscendGreaterOrEqual will call iterator once for each element greater or equal to
 // pivot in ascending order. It will stop whenever the iterator returns false.
-func (t *Tree) AscendGreaterOrEqual(pivot Item, iterator ItemIterator) {
+func (t *LLRB) AscendGreaterOrEqual(pivot Item, iterator ItemIterator) {
 	t.ascendGreaterOrEqual(t.root, pivot, iterator)
 }
 
-func (t *Tree) ascendGreaterOrEqual(h *Node, pivot Item, iterator ItemIterator) bool {
+func (t *LLRB) ascendGreaterOrEqual(h *Node, pivot Item, iterator ItemIterator) bool {
 	if h == nil {
 		return true
 	}
@@ -51,11 +51,11 @@ func (t *Tree) ascendGreaterOrEqual(h *Node, pivot Item, iterator ItemIterator) 
 	return t.ascendGreaterOrEqual(h.Right, pivot, iterator)
 }
 
-func (t *Tree) AscendLessThan(pivot Item, iterator ItemIterator) {
+func (t *LLRB) AscendLessThan(pivot Item, iterator ItemIterator) {
 	t.ascendLessThan(t.root, pivot, iterator)
 }
 
-func (t *Tree) ascendLessThan(h *Node, pivot Item, iterator ItemIterator) bool {
+func (t *LLRB) ascendLessThan(h *Node, pivot Item, iterator ItemIterator) bool {
 	if h == nil {
 		return true
 	}
@@ -73,11 +73,11 @@ func (t *Tree) ascendLessThan(h *Node, pivot Item, iterator ItemIterator) bool {
 
 // DescendLessOrEqual will call iterator once for each element less than the
 // pivot in descending order. It will stop whenever the iterator returns false.
-func (t *Tree) DescendLessOrEqual(pivot Item, iterator ItemIterator) {
+func (t *LLRB) DescendLessOrEqual(pivot Item, iterator ItemIterator) {
 	t.descendLessOrEqual(t.root, pivot, iterator)
 }
 
-func (t *Tree) descendLessOrEqual(h *Node, pivot Item, iterator ItemIterator) bool {
+func (t *LLRB) descendLessOrEqual(h *Node, pivot Item, iterator ItemIterator) bool {
 	if h == nil {
 		return true
 	}
