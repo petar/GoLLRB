@@ -26,11 +26,51 @@ type Node struct {
 	Item
 	Left, Right *Node // Pointers to left and right child nodes
 	Black       bool  // If set, the color of the link (incoming from the parent) is black
-	                  // In the LLRB, new nodes are always red, hence the zero-value for node
+	// In the LLRB, new nodes are always red, hence the zero-value for node
 }
 
 type Item interface {
 	Less(than Item) bool
+}
+
+//
+func less(x, y Item) bool {
+	if x == pinf {
+		return false
+	}
+	if x == ninf {
+		return true
+	}
+	return x.Less(y)
+}
+
+// Inf returns an Item that is "bigger than" any other item, if sign is positive.
+// Otherwise  it returns an Item that is "smaller than" any other item.
+func Inf(sign int) Item {
+	if sign == 0 {
+		panic("sign")
+	}
+	if sign > 0 {
+		return pinf
+	}
+	return ninf
+}
+
+var (
+	ninf = nInf{}
+	pinf = pInf{}
+)
+
+type nInf struct{}
+
+func (nInf) Less(Item) bool {
+	return true
+}
+
+type pInf struct{}
+
+func (pInf) Less(Item) bool {
+	return false
 }
 
 // New() allocates a new tree
@@ -63,9 +103,9 @@ func (t *Tree) Get(key Item) Item {
 	h := t.root
 	for h != nil {
 		switch {
-		case key.Less(h.Item):
+		case less(key, h.Item):
 			h = h.Left
-		case h.Item.Less(key):
+		case less(h.Item, key):
 			h = h.Right
 		default:
 			return h.Item
@@ -133,9 +173,9 @@ func (t *Tree) replaceOrInsert(h *Node, item Item) (*Node, Item) {
 	h = walkDownRot23(h)
 
 	var replaced Item
-	if item.Less(h.Item) { // BUG
+	if less(item, h.Item) { // BUG
 		h.Left, replaced = t.replaceOrInsert(h.Left, item)
-	} else if h.Item.Less(item) {
+	} else if less(h.Item, item) {
 		h.Right, replaced = t.replaceOrInsert(h.Right, item)
 	} else {
 		replaced, h.Item = h.Item, item
@@ -164,7 +204,7 @@ func (t *Tree) insertNoReplace(h *Node, item Item) *Node {
 
 	h = walkDownRot23(h)
 
-	if item.Less(h.Item) {
+	if less(item, h.Item) {
 		h.Left = t.insertNoReplace(h.Left, item)
 	} else {
 		h.Right = t.insertNoReplace(h.Right, item)
@@ -300,7 +340,7 @@ func (t *Tree) delete(h *Node, item Item) (*Node, Item) {
 	if h == nil {
 		return nil, nil
 	}
-	if item.Less(h.Item) {
+	if less(item, h.Item) {
 		if h.Left == nil { // item not present. Nothing to delete
 			return h, nil
 		}
@@ -313,7 +353,7 @@ func (t *Tree) delete(h *Node, item Item) (*Node, Item) {
 			h = rotateRight(h)
 		}
 		// If @item equals @h.Item and no right children at @h
-		if !h.Item.Less(item) && h.Right == nil {
+		if !less(h.Item, item) && h.Right == nil {
 			return nil, h.Item
 		}
 		// PETAR: Added 'h.Right != nil' below
@@ -321,7 +361,7 @@ func (t *Tree) delete(h *Node, item Item) (*Node, Item) {
 			h = moveRedRight(h)
 		}
 		// If @item equals @h.Item, and (from above) 'h.Right != nil'
-		if !h.Item.Less(item) {
+		if !less(h.Item, item) {
 			var subDeleted Item
 			h.Right, subDeleted = deleteMin(h.Right)
 			if subDeleted == nil {

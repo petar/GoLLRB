@@ -44,131 +44,142 @@ func TestReverseInsertOrder(t *testing.T) {
 	for i := 0; i < n; i++ {
 		tree.ReplaceOrInsert(Int(n - i))
 	}
-	c := tree.IterAscend()
-	for j, item := 1, <-c; item != nil; j, item = j+1, <-c {
-		if item.(int) != j {
+	i := 0
+	tree.AscendGreaterOrEqual(Int(0), func(item Item) bool {
+		if int(item.(Int)) != i {
 			t.Fatalf("bad order")
 		}
-	}
+		i++
+		return true
+	})
 }
 
 func TestRange(t *testing.T) {
-	tree := New(StringLess)
-	order := []string{
+	tree := New()
+	order := []String{
 		"ab", "aba", "abc", "a", "aa", "aaa", "b", "a-", "a!",
 	}
 	for _, i := range order {
 		tree.ReplaceOrInsert(i)
 	}
-	c := tree.IterRange("ab", "ac")
 	k := 0
-	for item := <-c; item != nil; item = <-c {
+	tree.AscendRange(String("ab"), String("ac"), func(item Item) bool {
 		if k > 3 {
 			t.Fatalf("returned more items than expected")
 		}
-		i1 := string(order[k])
-		i2 := item.(string)
+		i1 := order[k]
+		i2 := item.(String)
 		if i1 != i2 {
 			t.Errorf("expecting %s, got %s", i1, i2)
 		}
 		k++
-	}
+		return true
+	})
 }
 
 func TestRandomInsertOrder(t *testing.T) {
-	tree := New(IntLess)
+	tree := New()
 	n := 1000
 	perm := rand.Perm(n)
 	for i := 0; i < n; i++ {
-		tree.ReplaceOrInsert(perm[i])
+		tree.ReplaceOrInsert(Int(perm[i]))
 	}
-	c := tree.IterAscend()
-	for j, item := 0, <-c; item != nil; j, item = j+1, <-c {
-		if item.(int) != j {
+	j := 0
+	tree.AscendGreaterOrEqual(Int(0), func(item Item) bool {
+		if item.(Int) != Int(j) {
 			t.Fatalf("bad order")
 		}
-	}
+		j++
+		return true
+	})
 }
 
 func TestRandomReplace(t *testing.T) {
-	tree := New(IntLess)
+	tree := New()
 	n := 100
 	perm := rand.Perm(n)
 	for i := 0; i < n; i++ {
-		tree.ReplaceOrInsert(perm[i])
+		tree.ReplaceOrInsert(Int(perm[i]))
 	}
 	perm = rand.Perm(n)
 	for i := 0; i < n; i++ {
-		if replaced := tree.ReplaceOrInsert(perm[i]); replaced == nil || replaced.(int) != perm[i] {
-
+		if replaced := tree.ReplaceOrInsert(Int(perm[i])); replaced == nil || replaced.(Int) != Int(perm[i]) {
 			t.Errorf("error replacing")
 		}
 	}
 }
 
 func TestRandomInsertSequentialDelete(t *testing.T) {
-	tree := New(IntLess)
+	tree := New()
 	n := 1000
 	perm := rand.Perm(n)
 	for i := 0; i < n; i++ {
-		tree.ReplaceOrInsert(perm[i])
+		tree.ReplaceOrInsert(Int(perm[i]))
 	}
 	for i := 0; i < n; i++ {
-		tree.Delete(i)
+		tree.Delete(Int(i))
 	}
 }
 
 func TestRandomInsertDeleteNonExistent(t *testing.T) {
-	tree := New(IntLess)
+	tree := New()
 	n := 100
 	perm := rand.Perm(n)
 	for i := 0; i < n; i++ {
-		tree.ReplaceOrInsert(perm[i])
+		tree.ReplaceOrInsert(Int(perm[i]))
 	}
-	if tree.Delete(200) != nil {
+	if tree.Delete(Int(200)) != nil {
 		t.Errorf("deleted non-existent item")
 	}
-	if tree.Delete(-2) != nil {
+	if tree.Delete(Int(-2)) != nil {
 		t.Errorf("deleted non-existent item")
 	}
 	for i := 0; i < n; i++ {
-		if u := tree.Delete(i); u == nil || u.(int) != i {
+		if u := tree.Delete(Int(i)); u == nil || u.(Int) != Int(i) {
 			t.Errorf("delete failed")
 		}
 	}
-	if tree.Delete(200) != nil {
+	if tree.Delete(Int(200)) != nil {
 		t.Errorf("deleted non-existent item")
 	}
-	if tree.Delete(-2) != nil {
+	if tree.Delete(Int(-2)) != nil {
 		t.Errorf("deleted non-existent item")
 	}
 }
 
 func TestRandomInsertPartialDeleteOrder(t *testing.T) {
-	tree := New(IntLess)
+	tree := New()
 	n := 100
 	perm := rand.Perm(n)
 	for i := 0; i < n; i++ {
-		tree.ReplaceOrInsert(perm[i])
+		tree.ReplaceOrInsert(Int(perm[i]))
 	}
 	for i := 1; i < n-1; i++ {
-		tree.Delete(i)
+		tree.Delete(Int(i))
 	}
-	c := tree.IterAscend()
-	if (<-c).(int) != 0 {
-		t.Errorf("expecting 0")
-	}
-	if (<-c).(int) != n-1 {
-		t.Errorf("expecting %d", n-1)
-	}
+	j := 0
+	tree.AscendGreaterOrEqual(Int(0), func(item Item) bool {
+		switch j {
+		case 0:
+			if item.(Int) != Int(0) {
+				t.Errorf("expecting 0")
+			}
+		case 1:
+			if item.(Int) != Int(n-1) {
+				t.Errorf("expecting %d", n-1)
+			}
+		}
+		j++
+		return true
+	})
 }
 
 func TestRandomInsertStats(t *testing.T) {
-	tree := New(IntLess)
+	tree := New()
 	n := 100000
 	perm := rand.Perm(n)
 	for i := 0; i < n; i++ {
-		tree.ReplaceOrInsert(perm[i])
+		tree.ReplaceOrInsert(Int(perm[i]))
 	}
 	avg, _ := tree.HeightStats()
 	expAvg := math.Log2(float64(n)) - 1.5
@@ -178,29 +189,29 @@ func TestRandomInsertStats(t *testing.T) {
 }
 
 func BenchmarkInsert(b *testing.B) {
-	tree := New(IntLess)
+	tree := New()
 	for i := 0; i < b.N; i++ {
-		tree.ReplaceOrInsert(b.N - i)
+		tree.ReplaceOrInsert(Int(b.N - i))
 	}
 }
 
 func BenchmarkDelete(b *testing.B) {
 	b.StopTimer()
-	tree := New(IntLess)
+	tree := New()
 	for i := 0; i < b.N; i++ {
-		tree.ReplaceOrInsert(b.N - i)
+		tree.ReplaceOrInsert(Int(b.N - i))
 	}
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		tree.Delete(i)
+		tree.Delete(Int(i))
 	}
 }
 
 func BenchmarkDeleteMin(b *testing.B) {
 	b.StopTimer()
-	tree := New(IntLess)
+	tree := New()
 	for i := 0; i < b.N; i++ {
-		tree.ReplaceOrInsert(b.N - i)
+		tree.ReplaceOrInsert(Int(b.N - i))
 	}
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -209,18 +220,20 @@ func BenchmarkDeleteMin(b *testing.B) {
 }
 
 func TestInsertNoReplace(t *testing.T) {
-	tree := New(IntLess)
+	tree := New()
 	n := 1000
 	for q := 0; q < 2; q++ {
 		perm := rand.Perm(n)
 		for i := 0; i < n; i++ {
-			tree.InsertNoReplace(perm[i])
+			tree.InsertNoReplace(Int(perm[i]))
 		}
 	}
-	c := tree.IterAscend()
-	for j, item := 0, <-c; item != nil; j, item = j+1, <-c {
-		if item.(int) != j/2 {
+	j := 0
+	tree.AscendGreaterOrEqual(Int(0), func(item Item) bool {
+		if item.(Int) != Int(j/2) {
 			t.Fatalf("bad order")
 		}
-	}
+		j++
+		return true
+	})
 }
