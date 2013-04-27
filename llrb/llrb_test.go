@@ -10,47 +10,39 @@ import (
 	"testing"
 )
 
-func IntLess(p, q interface{}) bool {
-	return p.(int) < q.(int)
-}
-
-func StringLess(p, q interface{}) bool {
-	return p.(string) < q.(string)
-}
-
 func TestCases(t *testing.T) {
-	tree := New(IntLess)
-	tree.ReplaceOrInsert(1)
-	tree.ReplaceOrInsert(1)
+	tree := New()
+	tree.ReplaceOrInsert(Int(1))
+	tree.ReplaceOrInsert(Int(1))
 	if tree.Len() != 1 {
 		t.Errorf("expecting len 1")
 	}
-	if !tree.Has(1) {
+	if !tree.Has(Int(1)) {
 		t.Errorf("expecting to find key=1")
 	}
 
-	tree.Delete(1)
+	tree.Delete(Int(1))
 	if tree.Len() != 0 {
 		t.Errorf("expecting len 0")
 	}
-	if tree.Has(1) {
+	if tree.Has(Int(1)) {
 		t.Errorf("not expecting to find key=1")
 	}
 
-	tree.Delete(1)
+	tree.Delete(Int(1))
 	if tree.Len() != 0 {
 		t.Errorf("expecting len 0")
 	}
-	if tree.Has(1) {
+	if tree.Has(Int(1)) {
 		t.Errorf("not expecting to find key=1")
 	}
 }
 
 func TestReverseInsertOrder(t *testing.T) {
-	tree := New(IntLess)
+	tree := New()
 	n := 100
 	for i := 0; i < n; i++ {
-		tree.ReplaceOrInsert(n - i)
+		tree.ReplaceOrInsert(Int(n - i))
 	}
 	c := tree.IterAscend()
 	for j, item := 1, <-c; item != nil; j, item = j+1, <-c {

@@ -2,11 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// A Left-Leaning Red-Black (LLRB) implementation of 2-3 balanced binary search trees
-
-package llrb
-
-// Tree is a Left-Leaning Red-Black (LLRB) implementation of 2-3 trees, based on:
+// A Left-Leaning Red-Black (LLRB) implementation of 2-3 balanced binary search trees,
+// based on the following work:
 //
 //   http://www.cs.princeton.edu/~rs/talks/LLRB/08Penn.pdf
 //   http://www.cs.princeton.edu/~rs/talks/LLRB/LLRB.pdf
@@ -17,8 +14,10 @@ package llrb
 //  implementation of 2-3 trees is a recent improvement on the traditional implementation,
 //  observed and documented by Robert Sedgewick.
 //
+package llrb
+
+// Tree is a Left-Leaning Red-Black (LLRB) implementation of 2-3 trees
 type Tree struct {
-	less  LessFunc
 	count int
 	root  *Node
 }
@@ -30,22 +29,13 @@ type Node struct {
 	                  // In the LLRB, new nodes are always red, hence the zero-value for node
 }
 
-type Item interface{}
-
-type LessFunc func(a, b interface{}) bool
-
-// New() allocates a new tree
-func New(lessfunc LessFunc) *Tree {
-	t := &Tree{}
-	t.Init(lessfunc)
-	return t
+type Item interface {
+	Less(than Item) bool
 }
 
-// Init resets (empties) the tree
-func (t *Tree) Init(lessfunc LessFunc) {
-	t.less = lessfunc
-	t.root = nil
-	t.count = 0
+// New() allocates a new tree
+func New() *Tree {
+	return &Tree{}
 }
 
 // SetRoot sets the root node of the tree.
@@ -63,21 +53,19 @@ func (t *Tree) Root() *Node {
 // Len returns the number of nodes in the tree.
 func (t *Tree) Len() int { return t.count }
 
-// Has returns true if the tree contains an element
-// whose LessThan order equals that of key.
+// Has returns true if the tree contains an element whose order is the same as that of key.
 func (t *Tree) Has(key Item) bool {
 	return t.Get(key) != nil
 }
 
-// Get retrieves an element from the tree whose LessThan order
-// equals that of key.
+// Get retrieves an element from the tree whose order is the same as that of key.
 func (t *Tree) Get(key Item) Item {
 	h := t.root
 	for h != nil {
 		switch {
-		case t.less(key, h.Item):
+		case key.Less(h.Item):
 			h = h.Left
-		case t.less(h.Item, key):
+		case h.Item.Less(key):
 			h = h.Right
 		default:
 			return h.Item
@@ -145,9 +133,9 @@ func (t *Tree) replaceOrInsert(h *Node, item Item) (*Node, Item) {
 	h = walkDownRot23(h)
 
 	var replaced Item
-	if t.less(item, h.Item) { // BUG
+	if item.Less(h.Item) { // BUG
 		h.Left, replaced = t.replaceOrInsert(h.Left, item)
-	} else if t.less(h.Item, item) {
+	} else if h.Item.Less(item) {
 		h.Right, replaced = t.replaceOrInsert(h.Right, item)
 	} else {
 		replaced, h.Item = h.Item, item
@@ -176,7 +164,7 @@ func (t *Tree) insertNoReplace(h *Node, item Item) *Node {
 
 	h = walkDownRot23(h)
 
-	if t.less(item, h.Item) {
+	if item.Less(h.Item) {
 		h.Left = t.insertNoReplace(h.Left, item)
 	} else {
 		h.Right = t.insertNoReplace(h.Right, item)
@@ -312,7 +300,7 @@ func (t *Tree) delete(h *Node, item Item) (*Node, Item) {
 	if h == nil {
 		return nil, nil
 	}
-	if t.less(item, h.Item) {
+	if item.Less(h.Item) {
 		if h.Left == nil { // item not present. Nothing to delete
 			return h, nil
 		}
@@ -325,7 +313,7 @@ func (t *Tree) delete(h *Node, item Item) (*Node, Item) {
 			h = rotateRight(h)
 		}
 		// If @item equals @h.Item and no right children at @h
-		if !t.less(h.Item, item) && h.Right == nil {
+		if !h.Item.Less(item) && h.Right == nil {
 			return nil, h.Item
 		}
 		// PETAR: Added 'h.Right != nil' below
@@ -333,7 +321,7 @@ func (t *Tree) delete(h *Node, item Item) (*Node, Item) {
 			h = moveRedRight(h)
 		}
 		// If @item equals @h.Item, and (from above) 'h.Right != nil'
-		if !t.less(h.Item, item) {
+		if !h.Item.Less(item) {
 			var subDeleted Item
 			h.Right, subDeleted = deleteMin(h.Right)
 			if subDeleted == nil {

@@ -13,11 +13,11 @@ func (t *Tree) getHeight(h *Node, item Item) (Item, int) {
 	if h == nil {
 		return nil, 0
 	}
-	if t.less(item, h.Item) {
+	if item.Less(h.Item) {
 		result, depth := t.getHeight(h.Left, item)
 		return result, depth + 1
 	}
-	if t.less(h.Item, item) {
+	if h.Item.Less(item) {
 		result, depth := t.getHeight(h.Right, item)
 		return result, depth + 1
 	}

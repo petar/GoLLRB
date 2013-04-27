@@ -12,7 +12,7 @@ func (t *Tree) ascendGreaterOrEqual(h *Node, pivot Item, iterator ItemIterator) 
 	if h == nil {
 		return true
 	}
-	if !t.less(h.Item, pivot) {
+	if !h.Item.Less(pivot) {
 		if !t.ascendGreaterOrEqual(h.Left, pivot, iterator) {
 			return false
 		}
@@ -33,7 +33,7 @@ func (t *Tree) descendLessOrEqual(h *Node, pivot Item, iterator ItemIterator) bo
 	if h == nil {
 		return true
 	}
-	if t.less(h.Item, pivot) || !t.less(pivot, h.Item) {
+	if h.Item.Less(pivot) || !pivot.Less(h.Item) {
 		if !t.descendLessOrEqual(h.Right, pivot, iterator) {
 			return false
 		}
