@@ -46,10 +46,10 @@ func TestReverseInsertOrder(t *testing.T) {
 	}
 	i := 0
 	tree.AscendGreaterOrEqual(Int(0), func(item Item) bool {
-		if int(item.(Int)) != i {
-			t.Fatalf("bad order")
-		}
 		i++
+		if item.(Int) != Int(i) {
+			t.Errorf("bad order: got %d, expect %d", item.(Int), i)
+		}
 		return true
 	})
 }
