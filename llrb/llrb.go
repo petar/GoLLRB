@@ -30,6 +30,11 @@ type Node struct {
 	// In the LLRB, new nodes are always red, hence the zero-value for node
 }
 
+func (n *Node) Copy() *Node {
+	ret := *n
+	return &ret
+}
+
 type Item interface {
 	Less(than Item) bool
 }
@@ -180,8 +185,7 @@ func (t *LLRB) replaceOrInsert(h *Node, item Item) (*Node, Item) {
 		return newNode(item), nil
 	}
 	if t.cow {
-		newH := *h
-		h = &newH
+		h = h.Copy()
 	}
 
 	h = walkDownRot23(h)
@@ -216,8 +220,7 @@ func (t *LLRB) insertNoReplace(h *Node, item Item) *Node {
 		return newNode(item)
 	}
 	if t.cow {
-		newH := *h
-		h = &newH
+		h = h.Copy()
 	}
 
 	h = walkDownRot23(h)
@@ -297,8 +300,7 @@ func deleteMin(h *Node, cow bool) (*Node, Item) {
 	}
 
 	if cow {
-		newH := *h
-		h = &newH
+		h = h.Copy()
 	}
 
 	if !isRed(h.Left) && !isRed(h.Left.Left) {
@@ -330,8 +332,7 @@ func deleteMax(h *Node, cow bool) (*Node, Item) {
 		return nil, nil
 	}
 	if cow {
-		newH := *h
-		h = &newH
+		h = h.Copy()
 	}
 	if isRed(h.Left) {
 		h = rotateRight(h)
@@ -372,8 +373,7 @@ func (t *LLRB) delete(h *Node, item Item) (*Node, Item) {
 			return h, nil
 		}
 		if t.cow {
-			newH := *h
-			*h = newH
+			h = h.Copy()
 		}
 		if !isRed(h.Left) && !isRed(h.Left.Left) {
 			h = moveRedLeft(h)
@@ -381,8 +381,7 @@ func (t *LLRB) delete(h *Node, item Item) (*Node, Item) {
 		h.Left, deleted = t.delete(h.Left, item)
 	} else {
 		if t.cow {
-			newH := *h
-			*h = newH
+			h = h.Copy()
 		}
 		if isRed(h.Left) {
 			h = rotateRight(h)

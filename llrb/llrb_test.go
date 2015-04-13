@@ -287,7 +287,7 @@ func TestCoW(t *testing.T) {
 	})
 
 	i = 0
-	expect = []Int{3, 4, 6, 20}
+	expect = []Int{1, 3, 4, 6, 20}
 	tree2.AscendRange(Int(-1), Int(100), func(itm Item) bool {
 		iv := itm.(Int)
 		if iv != expect[i] {
