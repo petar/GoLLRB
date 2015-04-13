@@ -237,3 +237,33 @@ func TestInsertNoReplace(t *testing.T) {
 		return true
 	})
 }
+
+func TestCoW(t *testing.T) {
+	tree := NewCoW()
+	tree.InsertNoReplace(Int(4))
+	tree.InsertNoReplace(Int(6))
+	tree.InsertNoReplace(Int(1))
+	tree.InsertNoReplace(Int(3))
+
+	tree2 := tree.Clone()
+	tree.InsertNoReplace(Int(60))
+	orig := tree.ReplaceOrInsert(Int(4))
+
+	if tree2.Len() != 4 {
+		t.Errorf("Expected Len of 4, but got %d", tree2.Len())
+	}
+	if tree2.Get(Int(60)) != nil {
+		t.Errorf("Expected to get nil for 60")
+	}
+	if tree2.Get(Int(4)) != orig {
+		t.Errorf("Expected to get original for 4")
+	}
+
+	tree2.InsertNoReplace(Int(20))
+	if tree.Len() != 5 {
+		t.Errorf("Expected Len of 5, but got %d", tree.Len())
+	}
+	if tree.Get(Int(20)) != nil {
+		t.Errorf("Expected to get nil for 20")
+	}
+}

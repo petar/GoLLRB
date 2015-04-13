@@ -19,6 +19,7 @@ package llrb
 // Tree is a Left-Leaning Red-Black (LLRB) implementation of 2-3 trees
 type LLRB struct {
 	count int
+	cow   bool
 	root  *Node
 }
 
@@ -76,6 +77,15 @@ func (pInf) Less(Item) bool {
 // New() allocates a new tree
 func New() *LLRB {
 	return &LLRB{}
+}
+
+func NewCoW() *LLRB {
+	return &LLRB{cow: true}
+}
+
+func (t *LLRB) Clone() *LLRB {
+	ret := *t
+	return &ret
 }
 
 // SetRoot sets the root node of the tree.
@@ -170,7 +180,7 @@ func (t *LLRB) replaceOrInsert(h *Node, item Item) (*Node, Item) {
 		return newNode(item), nil
 	}
 
-	h = walkDownRot23(h)
+	h = t.walkDownRot23(h)
 
 	var replaced Item
 	if less(item, h.Item) { // BUG
@@ -202,7 +212,7 @@ func (t *LLRB) insertNoReplace(h *Node, item Item) *Node {
 		return newNode(item)
 	}
 
-	h = walkDownRot23(h)
+	h = t.walkDownRot23(h)
 
 	if less(item, h.Item) {
 		h.Left = t.insertNoReplace(h.Left, item)
@@ -215,7 +225,13 @@ func (t *LLRB) insertNoReplace(h *Node, item Item) *Node {
 
 // Rotation driver routines for 2-3 algorithm
 
-func walkDownRot23(h *Node) *Node { return h }
+func (t *LLRB) walkDownRot23(h *Node) *Node {
+	if t.cow {
+		ret := *h
+		return &ret
+	}
+	return h
+}
 
 func walkUpRot23(h *Node) *Node {
 	if isRed(h.Right) && !isRed(h.Left) {
