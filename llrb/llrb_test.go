@@ -237,3 +237,63 @@ func TestInsertNoReplace(t *testing.T) {
 		return true
 	})
 }
+
+func TestCoW(t *testing.T) {
+	tree := NewCoW()
+	tree.InsertNoReplace(Int(4))
+	tree.InsertNoReplace(Int(6))
+	tree.InsertNoReplace(Int(1))
+	tree.InsertNoReplace(Int(3))
+
+	tree2 := tree.Clone()
+	tree.InsertNoReplace(Int(60))
+	orig := tree.ReplaceOrInsert(Int(4))
+
+	if tree2.Len() != 4 {
+		t.Errorf("Expected Len of 4, but got %d", tree2.Len())
+	}
+	if tree2.Get(Int(60)) != nil {
+		t.Errorf("Expected to get nil for 60")
+	}
+	if tree2.Get(Int(4)) != orig {
+		t.Errorf("Expected to get original for 4")
+	}
+
+	tree2.InsertNoReplace(Int(20))
+	if tree.Len() != 5 {
+		t.Errorf("Expected Len of 5, but got %d", tree.Len())
+	}
+	if tree.Get(Int(20)) != nil {
+		t.Errorf("Expected to get nil for 20")
+	}
+
+	orig = tree.Delete(Int(6))
+	tree.Delete(Int(1))
+	tree.DeleteMax()
+	tree.DeleteMin()
+	if tree2.Get(Int(6)) != orig {
+		t.Errorf("Expected to get original for 6")
+	}
+
+	i := 0
+	expect := []Int{4, 60}
+	tree.AscendRange(Int(-1), Int(100), func(itm Item) bool {
+		iv := itm.(Int)
+		if iv != expect[i] {
+			t.Errorf("expected %d got %d", expect[i], iv)
+		}
+		i++
+		return true
+	})
+
+	i = 0
+	expect = []Int{1, 3, 4, 6, 20}
+	tree2.AscendRange(Int(-1), Int(100), func(itm Item) bool {
+		iv := itm.(Int)
+		if iv != expect[i] {
+			t.Errorf("expected %d got %d", expect[i], iv)
+		}
+		i++
+		return true
+	})
+}
