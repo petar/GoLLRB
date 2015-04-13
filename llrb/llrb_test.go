@@ -266,4 +266,34 @@ func TestCoW(t *testing.T) {
 	if tree.Get(Int(20)) != nil {
 		t.Errorf("Expected to get nil for 20")
 	}
+
+	orig = tree.Delete(Int(6))
+	tree.Delete(Int(1))
+	tree.DeleteMax()
+	tree.DeleteMin()
+	if tree2.Get(Int(6)) != orig {
+		t.Errorf("Expected to get original for 6")
+	}
+
+	i := 0
+	expect := []Int{4, 60}
+	tree.AscendRange(Int(-1), Int(100), func(itm Item) bool {
+		iv := itm.(Int)
+		if iv != expect[i] {
+			t.Errorf("expected %d got %d", expect[i], iv)
+		}
+		i++
+		return true
+	})
+
+	i = 0
+	expect = []Int{3, 4, 6, 20}
+	tree2.AscendRange(Int(-1), Int(100), func(itm Item) bool {
+		iv := itm.(Int)
+		if iv != expect[i] {
+			t.Errorf("expected %d got %d", expect[i], iv)
+		}
+		i++
+		return true
+	})
 }

@@ -179,8 +179,12 @@ func (t *LLRB) replaceOrInsert(h *Node, item Item) (*Node, Item) {
 	if h == nil {
 		return newNode(item), nil
 	}
+	if t.cow {
+		newH := *h
+		h = &newH
+	}
 
-	h = t.walkDownRot23(h)
+	h = walkDownRot23(h)
 
 	var replaced Item
 	if less(item, h.Item) { // BUG
@@ -211,8 +215,12 @@ func (t *LLRB) insertNoReplace(h *Node, item Item) *Node {
 	if h == nil {
 		return newNode(item)
 	}
+	if t.cow {
+		newH := *h
+		h = &newH
+	}
 
-	h = t.walkDownRot23(h)
+	h = walkDownRot23(h)
 
 	if less(item, h.Item) {
 		h.Left = t.insertNoReplace(h.Left, item)
@@ -225,13 +233,7 @@ func (t *LLRB) insertNoReplace(h *Node, item Item) *Node {
 
 // Rotation driver routines for 2-3 algorithm
 
-func (t *LLRB) walkDownRot23(h *Node) *Node {
-	if t.cow {
-		ret := *h
-		return &ret
-	}
-	return h
-}
+func walkDownRot23(h *Node) *Node { return h }
 
 func walkUpRot23(h *Node) *Node {
 	if isRed(h.Right) && !isRed(h.Left) {
@@ -275,7 +277,7 @@ func walkUpRot234(h *Node) *Node {
 // deleted item or nil otherwise.
 func (t *LLRB) DeleteMin() Item {
 	var deleted Item
-	t.root, deleted = deleteMin(t.root)
+	t.root, deleted = deleteMin(t.root, t.cow)
 	if t.root != nil {
 		t.root.Black = true
 	}
@@ -286,7 +288,7 @@ func (t *LLRB) DeleteMin() Item {
 }
 
 // deleteMin code for LLRB 2-3 trees
-func deleteMin(h *Node) (*Node, Item) {
+func deleteMin(h *Node, cow bool) (*Node, Item) {
 	if h == nil {
 		return nil, nil
 	}
@@ -294,12 +296,17 @@ func deleteMin(h *Node) (*Node, Item) {
 		return nil, h.Item
 	}
 
+	if cow {
+		newH := *h
+		h = &newH
+	}
+
 	if !isRed(h.Left) && !isRed(h.Left.Left) {
 		h = moveRedLeft(h)
 	}
 
 	var deleted Item
-	h.Left, deleted = deleteMin(h.Left)
+	h.Left, deleted = deleteMin(h.Left, cow)
 
 	return fixUp(h), deleted
 }
@@ -308,7 +315,7 @@ func deleteMin(h *Node) (*Node, Item) {
 // the deleted item or nil otherwise
 func (t *LLRB) DeleteMax() Item {
 	var deleted Item
-	t.root, deleted = deleteMax(t.root)
+	t.root, deleted = deleteMax(t.root, t.cow)
 	if t.root != nil {
 		t.root.Black = true
 	}
@@ -318,9 +325,13 @@ func (t *LLRB) DeleteMax() Item {
 	return deleted
 }
 
-func deleteMax(h *Node) (*Node, Item) {
+func deleteMax(h *Node, cow bool) (*Node, Item) {
 	if h == nil {
 		return nil, nil
+	}
+	if cow {
+		newH := *h
+		h = &newH
 	}
 	if isRed(h.Left) {
 		h = rotateRight(h)
@@ -332,7 +343,7 @@ func deleteMax(h *Node) (*Node, Item) {
 		h = moveRedRight(h)
 	}
 	var deleted Item
-	h.Right, deleted = deleteMax(h.Right)
+	h.Right, deleted = deleteMax(h.Right, cow)
 
 	return fixUp(h), deleted
 }
@@ -360,11 +371,19 @@ func (t *LLRB) delete(h *Node, item Item) (*Node, Item) {
 		if h.Left == nil { // item not present. Nothing to delete
 			return h, nil
 		}
+		if t.cow {
+			newH := *h
+			*h = newH
+		}
 		if !isRed(h.Left) && !isRed(h.Left.Left) {
 			h = moveRedLeft(h)
 		}
 		h.Left, deleted = t.delete(h.Left, item)
 	} else {
+		if t.cow {
+			newH := *h
+			*h = newH
+		}
 		if isRed(h.Left) {
 			h = rotateRight(h)
 		}
@@ -379,7 +398,7 @@ func (t *LLRB) delete(h *Node, item Item) (*Node, Item) {
 		// If @item equals @h.Item, and (from above) 'h.Right != nil'
 		if !less(h.Item, item) {
 			var subDeleted Item
-			h.Right, subDeleted = deleteMin(h.Right)
+			h.Right, subDeleted = deleteMin(h.Right, t.cow)
 			if subDeleted == nil {
 				panic("logic")
 			}
