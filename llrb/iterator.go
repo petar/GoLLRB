@@ -64,10 +64,10 @@ func (t *LLRB) ascendLessThan(h *Node, pivot Item, iterator ItemIterator) bool {
 	if !t.ascendLessThan(h.Left, pivot, iterator) {
 		return false
 	}
-	if !iterator(h.Item) {
-		return false
-	}
 	if less(h.Item, pivot) {
+		if !iterator(h.Item) {
+			return false
+		}
 		return t.ascendLessThan(h.Right, pivot, iterator)
 	}
 	return true
