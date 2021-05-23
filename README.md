@@ -31,7 +31,7 @@ I consider it to be in stable, perhaps even production, shape. There are no know
 With a healthy Go Language installed, simply run `go get github.com/petar/GoLLRB/llrb`
 
 ## Example
-    
+
 	package main
 
 	import (
@@ -39,24 +39,24 @@ With a healthy Go Language installed, simply run `go get github.com/petar/GoLLRB
 		"github.com/petar/GoLLRB/llrb"
 	)
 
-	func lessInt(a, b interface{}) bool { return a.(int) < b.(int) }
+	func Print(item llrb.Item) bool {
+		i, ok := item.(llrb.Int)
+		if !ok {
+			return false
+		}
+		fmt.Println(int(i))
+		return true
+	}
 
 	func main() {
-		tree := llrb.New(lessInt)
-		tree.ReplaceOrInsert(1)
-		tree.ReplaceOrInsert(2)
-		tree.ReplaceOrInsert(3)
-		tree.ReplaceOrInsert(4)
+		tree := llrb.New()
+		tree.ReplaceOrInsert(llrb.Int(1))
+		tree.ReplaceOrInsert(llrb.Int(2))
+		tree.ReplaceOrInsert(llrb.Int(3))
+		tree.ReplaceOrInsert(llrb.Int(4))
 		tree.DeleteMin()
-		tree.Delete(4)
-		c := tree.IterAscend()
-		for {
-			u := <-c
-			if u == nil {
-				break
-			}
-			fmt.Printf("%d\n", int(u.(int)))
-		}
+		tree.Delete(llrb.Int(4))
+		tree.AscendGreaterOrEqual(tree.Min(), Print)
 	}
 
 ## About
