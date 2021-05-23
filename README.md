@@ -31,33 +31,33 @@ I consider it to be in stable, perhaps even production, shape. There are no know
 With a healthy Go Language installed, simply run `go get github.com/petar/GoLLRB/llrb`
 
 ## Example
-    
-	package main
 
-	import (
-		"fmt"
-		"github.com/petar/GoLLRB/llrb"
-	)
+```go
+package main
 
-	func lessInt(a, b interface{}) bool { return a.(int) < b.(int) }
+import (
+	"fmt"
+	"github.com/petar/GoLLRB/llrb"
+)
 
-	func main() {
-		tree := llrb.New(lessInt)
-		tree.ReplaceOrInsert(1)
-		tree.ReplaceOrInsert(2)
-		tree.ReplaceOrInsert(3)
-		tree.ReplaceOrInsert(4)
-		tree.DeleteMin()
-		tree.Delete(4)
-		c := tree.IterAscend()
-		for {
-			u := <-c
-			if u == nil {
-				break
-			}
-			fmt.Printf("%d\n", int(u.(int)))
-		}
-	}
+type ComparableInt int
+
+func (elem ComparableInt) Less(than llrb.Item) bool { return elem < than.(ComparableInt) }
+
+func main() {
+	tree := llrb.New()
+	tree.ReplaceOrInsert(ComparableInt(1))
+	tree.ReplaceOrInsert(ComparableInt(2))
+	tree.ReplaceOrInsert(ComparableInt(3))
+	tree.ReplaceOrInsert(ComparableInt(4))
+	tree.DeleteMin()
+	tree.Delete(ComparableInt(4))
+	tree.AscendGreaterOrEqual(tree.Min(), func (i llrb.Item) bool {
+		fmt.Printf("%d\n", int(i.(ComparableInt)))
+		return true
+	})
+}
+```
 
 ## About
 
