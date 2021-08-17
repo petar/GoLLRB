@@ -31,34 +31,34 @@ I consider it to be in stable, perhaps even production, shape. There are no know
 With a healthy Go Language installed, simply run `go get github.com/petar/GoLLRB/llrb`
 
 ## Example
-    
-	package main
+```go
+package main
 
-	import (
-		"fmt"
-		"github.com/petar/GoLLRB/llrb"
-	)
+import (
+    "fmt"
+    "github.com/petar/GoLLRB/llrb"
+)
 
-	func lessInt(a, b interface{}) bool { return a.(int) < b.(int) }
+func lessInt(a, b interface{}) bool { return a.(int) < b.(int) }
 
-	func main() {
-		tree := llrb.New(lessInt)
-		tree.ReplaceOrInsert(1)
-		tree.ReplaceOrInsert(2)
-		tree.ReplaceOrInsert(3)
-		tree.ReplaceOrInsert(4)
-		tree.DeleteMin()
-		tree.Delete(4)
-		c := tree.IterAscend()
-		for {
-			u := <-c
-			if u == nil {
-				break
-			}
-			fmt.Printf("%d\n", int(u.(int)))
-		}
-	}
-
+func main() {
+    tree := llrb.New(lessInt)
+    tree.ReplaceOrInsert(1)
+    tree.ReplaceOrInsert(2)
+    tree.ReplaceOrInsert(3)
+    tree.ReplaceOrInsert(4)
+    tree.DeleteMin()
+    tree.Delete(4)
+    c := tree.IterAscend()
+    for {
+        u := <-c
+        if u == nil {
+            break
+        }
+        fmt.Printf("%d\n", int(u.(int)))
+    }
+}
+```
 ## About
 
 GoLLRB was written by [Petar Maymounkov](http://pdos.csail.mit.edu/~petar/). 
