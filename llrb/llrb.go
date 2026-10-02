@@ -278,7 +278,7 @@ func deleteMin(h *Node) (*Node, Item) {
 		return nil, h.Item
 	}
 
-	if !isRed(h.Left) && !isRed(h.Left.Left) {
+	if h.Left != nil && h.Right != nil && !isRed(h.Left) && !isRed(h.Left.Left) {
 		h = moveRedLeft(h)
 	}
 
@@ -312,7 +312,7 @@ func deleteMax(h *Node) (*Node, Item) {
 	if h.Right == nil {
 		return nil, h.Item
 	}
-	if !isRed(h.Right) && !isRed(h.Right.Left) {
+	if h.Left != nil && h.Right != nil && !isRed(h.Right) && !isRed(h.Right.Left) {
 		h = moveRedRight(h)
 	}
 	var deleted Item
@@ -344,7 +344,7 @@ func (t *LLRB) delete(h *Node, item Item) (*Node, Item) {
 		if h.Left == nil { // item not present. Nothing to delete
 			return h, nil
 		}
-		if !isRed(h.Left) && !isRed(h.Left.Left) {
+		if h.Left != nil && h.Right != nil && !isRed(h.Left) && !isRed(h.Left.Left) {
 			h = moveRedLeft(h)
 		}
 		h.Left, deleted = t.delete(h.Left, item)
@@ -356,8 +356,8 @@ func (t *LLRB) delete(h *Node, item Item) (*Node, Item) {
 		if !less(h.Item, item) && h.Right == nil {
 			return nil, h.Item
 		}
-		// PETAR: Added 'h.Right != nil' below
-		if h.Right != nil && !isRed(h.Right) && !isRed(h.Right.Left) {
+		// Guard against nil child pointers before moving red right
+		if h.Left != nil && h.Right != nil && !isRed(h.Right) && !isRed(h.Right.Left) {
 			h = moveRedRight(h)
 		}
 		// If @item equals @h.Item, and (from above) 'h.Right != nil'
@@ -414,14 +414,18 @@ func rotateRight(h *Node) *Node {
 // REQUIRE: Left and Right children must be present
 func flip(h *Node) {
 	h.Black = !h.Black
-	h.Left.Black = !h.Left.Black
-	h.Right.Black = !h.Right.Black
+	if h.Left != nil {
+		h.Left.Black = !h.Left.Black
+	}
+	if h.Right != nil {
+		h.Right.Black = !h.Right.Black
+	}
 }
 
 // REQUIRE: Left and Right children must be present
 func moveRedLeft(h *Node) *Node {
 	flip(h)
-	if isRed(h.Right.Left) {
+	if h.Right != nil && isRed(h.Right.Left) {
 		h.Right = rotateRight(h.Right)
 		h = rotateLeft(h)
 		flip(h)
@@ -432,7 +436,7 @@ func moveRedLeft(h *Node) *Node {
 // REQUIRE: Left and Right children must be present
 func moveRedRight(h *Node) *Node {
 	flip(h)
-	if isRed(h.Left.Left) {
+	if h.Left != nil && isRed(h.Left.Left) {
 		h = rotateRight(h)
 		flip(h)
 	}
