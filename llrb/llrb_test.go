@@ -237,3 +237,72 @@ func TestInsertNoReplace(t *testing.T) {
 		return true
 	})
 }
+
+type testKCounter struct {
+	key   int
+	value int
+}
+
+func (t testKCounter) Less(than Item) bool {
+	counter := than.(testKCounter)
+	if t.key < counter.key {
+		return true
+	}
+	return t.value < counter.value
+}
+
+func TestDeletePanicIssue29(t *testing.T) {
+	maxCacheSize := 3
+	put := func(tree *LLRB, itemByKey map[int]testKCounter, kc testKCounter) bool {
+		item, ok := itemByKey[kc.key]
+		if ok {
+			tree.Delete(item)
+			tree.ReplaceOrInsert(kc)
+			itemByKey[kc.key] = kc
+			return true
+		}
+		if tree.Len() >= maxCacheSize {
+			smallestItem := tree.Min().(testKCounter)
+			if kc.value < smallestItem.value {
+				return false
+			}
+			tree.DeleteMin()
+		}
+		tree.ReplaceOrInsert(kc)
+		itemByKey[kc.key] = kc
+		return true
+	}
+
+	itemByKey := make(map[int]testKCounter)
+	tree := New()
+	for i := 0; i < 100000; i++ {
+		put(tree, itemByKey, testKCounter{i % 20, i % 10})
+	}
+}
+
+func TestDeleteNilChildPanic(t *testing.T) {
+	for n := 1; n <= 50; n++ {
+		tree := New()
+		for i := 1; i <= n; i++ {
+			tree.ReplaceOrInsert(Int(i))
+		}
+		for i := 1; i <= n; i++ {
+			tree.Delete(Int(i))
+		}
+		if tree.Len() != 0 {
+			t.Fatalf("expected len 0, got %d", tree.Len())
+		}
+	}
+	for n := 1; n <= 50; n++ {
+		tree := New()
+		for i := 1; i <= n; i++ {
+			tree.ReplaceOrInsert(Int(i))
+		}
+		for i := n; i >= 1; i-- {
+			tree.Delete(Int(i))
+		}
+		if tree.Len() != 0 {
+			t.Fatalf("expected len 0, got %d", tree.Len())
+		}
+	}
+}
